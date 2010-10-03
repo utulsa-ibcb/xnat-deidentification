@@ -1,0 +1,255 @@
+<script language="Javascript">
+ 
+ var scansToBuild = new Array();
+  
+  function validate() {
+    var rtn = false;
+    for (index in scansToBuild) {
+ 	var key = scansToBuild[index].key;   
+ 	var buildCheckBox = document.getElementById("build_"+key);
+ 	if (buildCheckBox.checked) {
+ 	  var total = 	scansToBuild[index].size;
+ 	  var anychecked = 0;
+ 	  for(i=0; i<total; i++) { 
+ 	    if (document.getElementById(key +"_"+i).checked)
+ 	      anychecked = 1;
+           }
+           if (anychecked == 0) {
+ 	   alert("Please select atleast one scan of type " + key + " or uncheck Include " + key);	  
+            return false; 
+           }else rtn = true;
+ 	}
+    }
+    return rtn; 	 
+  }
+
+ 
+</script>
+
+##Copyright 2005 Harvard University / Howard Hughes Medical Institute (HHMI) All Rights Reserved
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
+#set ($template = $data.getTemplateInfo())
+$!template.setLayoutTemplate("/Popup.vm")
+$page.setTitle("CNDA -- Central Neuroimaging Data Archive")
+$page.setLinkColor($ui.alink)
+$page.setVlinkColor($ui.vlink)
+#if ($data.message)
+<DIV class="error">$data.message</DIV><br>
+#end
+<font face="$ui.sansSerifFonts">				
+
+#set ($sessionId = $om.getLabel())
+#set ($dblQts='"')
+<form name="GenericBoldBuildOptions" method="post" action="$link.setAction("BuildAction")"  onsubmit="return validate();">
+Please set the parameters required for the processing of BOLD and the Functional Connectivity scans of your study. 
+<br/> <br/>
+<table>
+<tr>
+<td>
+<b>
+  <font face="$ui.sansSerifFonts">
+	      Session: $sessionId 
+  </font>
+</b>
+</td>
+<td>
+<b>
+  <font face="$ui.sansSerifFonts">
+	      Project: $om.getProject()
+  </font>
+</b>
+</td>
+</tr>
+</table>
+<br/>
+
+
+<table border=0  bodercolor="#CC3333">
+	<tr>
+		<td>
+			<b>Atlas representative target</b>			
+		</td>	
+		<td>
+			<select name="target">
+				#if ($target) 
+					<option name="$target" selected>$target</option>
+				#end
+					<option name="711-2B">711-2B </option>
+					<option name="711-2C" >711-2C </option>
+					<option name="711-2O">711-2O </option> 
+					<option name="711-2Y">711-2Y </option>
+					<option name="711-2K">711-2K </option>
+					<option name="711-2L">711-2L </option>
+			</select>
+		</td>	
+	</tr>
+	#set($cross_day_register = $projectSettings.get("cross_day_register").getCsvvalues())
+	#if ($cross_day_register && $cross_day_register.equals("1"))
+	 #if ($cross_day_list.size() > 0)	
+		<tr>
+			<td>
+				<b>Select session to register to </b>
+			</td>	
+			<td>
+				<select name="cross_day_register"> 
+				#set ($i = 0)
+				<option name="-1">Select</option>
+				#foreach ($session in $cross_day_list)
+				   <option value="$session.getId()" #if ($i == 0) selected  #end >$session.getLabel()</option>
+	  			   #set ($i = $i + 1)
+				#end   
+				</select>
+			</td>
+		</tr>
+	  #else 
+		<tr>
+			<td>
+				<b>There are no previous MRs acquired for this subject</b>
+			</td>	
+			<td>
+				&nbsp;
+			</td>
+		</tr>
+	  #end
+	#end
+
+</table>
+
+<br/>
+
+
+<table border="0"  bordercolor="#CC3333">
+#foreach ( $key in $buildableScanTypes.keySet())
+   #set ($scanType = $buildableScanTypes.get($key))
+   #set ($scans = $mr.getUnionOfScansByType($scanType))
+   #if ($scans.size() > 0)
+   <script language="Javascript">	
+         var aScanType = {};
+         aScanType.key = '$key';
+         aScanType.size = $scans.size();
+         scansToBuild.push(aScanType);
+   </script>
+       <tr style="border-style:none">
+            <td  style="border-style:none">
+                <input type="checkbox" name="build_$key" checked />
+            </td>
+            <td  style="border-style:none">
+                <b>Include $key </b>
+            </td>
+	    <td >	
+		  &nbsp;	
+	    </td>
+        </tr>
+       <tr style="border-style:none">
+            <td width="300" style="border-style:none" colspan="3">
+                <p>&nbsp;&nbsp;Check scans to include in processing:</p>
+            </td>
+        </tr>
+        #if (!$key.equals("BOLD"))
+	        	#set ($j = 0)
+			#foreach ($scan in $scans)
+				<tr  style="border-style:none">
+				    <td >
+					<p>&nbsp;</p>
+				    </td>
+				    #if ($scan.getQuality().equalsIgnoreCase("usable"))
+					#set ($checked="checked")
+				    #else
+					#set ($checked="")	
+				    #end
+				    <td >
+				       <input type="checkbox" name="${key}_$j" value="$scan.Id" $checked>$scan.Id (<b>$!scan.getType()</b> Quality: $scan.Quality)
+				    </td>
+				    <td >
+					<p>&nbsp;</p>
+				    </td>
+				</tr>
+			#set ($j = $j + 1)
+			#end
+	#else
+	        	#set ($j = 0)
+			#foreach ($scan in $scans)
+				<tr  style="border-style:none">
+				    <td >
+					<p>&nbsp;</p>
+				    </td>
+				    #if ($scan.getQuality().equalsIgnoreCase("usable"))
+					#set ($checked="checked")
+				    #else
+					#set ($checked="")	
+				    #end
+				    <td >
+				       <input type="checkbox" name="${key}_$j" value="$scan.Id" $checked>$scan.Id (<b>$!scan.getType()</b> Quality: $scan.Quality)
+				    </td>
+				    <td >
+				       <input type="checkbox" name="functional_${key}_$j" value="$scan.Id" >Is a FC scan
+				    </td>
+				</tr>
+			#set ($j = $j + 1)
+			#end
+			#if ($j > 0)
+			<tr> <td colspan="3" align="left">
+			<div id="functional_processing_params" style="display=block;">
+			   <table>	
+				<tr  style="border-style:none">
+				    <td colspan="2">Parameters for  Build</td>
+				</tr>
+				#set ($tr = "TR_vol")
+				<tr  style="border-style:none">
+				    <td >Volume TR (in sec) (parameter: $tr)</td>
+				    <td ><input type="text" name=$dblQts$tr$dblQts value="$projectSettings.get($tr).getCsvvalues()"></td>
+				</tr>
+				#set ($skip = "skip")
+				<tr  style="border-style:none">
+				    <td >No. of pre-functional frames to skip (parameter: $skip)</td>
+				    <td ><input type="text" name=$dblQts$skip$dblQts value="$projectSettings.get($skip).getCsvvalues()"></td>
+				</tr>
+				#set ($epidir = "epidir")
+				<tr  style="border-style:none">
+				    <td> EPI acquisition direction (parameter: $epidir)</td>
+				    <td ><input type="text" name=$dblQts$epidir$dblQts value="$projectSettings.get($epidir).getCsvvalues()"></td>
+				</tr>
+				#set ($epi2atl = "epi2atl")
+				<tr  style="border-style:none">
+				    <td> Transform EPI to Atlas (parameter: $epi2atl)</td>
+				    <td ><input type="text" name=$dblQts$epi2atl$dblQts value="$projectSettings.get($epi2atl).getCsvvalues()"></td>
+				</tr>
+				#set ($normode = "normode")
+				<tr  style="border-style:none">
+				    <td> Enable per-frame volume intensity equalization (parameter: $normode)</td>
+				    <td ><input type="text" name=$dblQts$normode$dblQts value="$projectSettings.get($normode).getCsvvalues()"></td>
+				</tr>
+				#set ($economy = "economy")
+				<tr  style="border-style:none">
+				    <td> Economy (parameter: $economy)</td>
+				    <td ><input type="text" name=$dblQts$economy$dblQts value="$projectSettings.get($economy).getCsvvalues()"></td>
+				</tr>
+			  </table>
+			</div>
+			</td></tr>
+			#end
+	#end
+	<input type="hidden" name="${key}_rowcount" value="$j">
+  #end
+ #end
+ </table>    
+<br/>
+<br/>
+	
+#xdatPassItemFormFields($search_element $search_field $search_value $project)
+
+	<input type="hidden" name="pipelinename" value="build-tools/GenericBoldPreprocessing.xml">
+	<input type="hidden" name="cmdprefix" value="arc-grid-queue">
+
+
+#insertCustomPipelineNotification("process")
+
+   <input type="submit" name="eventSubmit_doGenericboldpreprocessing" value="Run processing" />
+    			&nbsp;&nbsp;
+    <input type="button" ONCLICK="javascript:self.close()" value="Close"/>    			
+    <p>&nbsp;</p>
+</form>
+
+
+
