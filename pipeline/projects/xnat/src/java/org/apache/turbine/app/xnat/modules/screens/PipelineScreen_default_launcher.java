@@ -1,5 +1,5 @@
 // Copyright 2010 Washington University School of Medicine All Rights Reserved
-package org.nrg.xnat.turbine.modules.screens;
+package org.apache.turbine.app.xnat.modules.screens;
 
 import java.util.ArrayList;
 

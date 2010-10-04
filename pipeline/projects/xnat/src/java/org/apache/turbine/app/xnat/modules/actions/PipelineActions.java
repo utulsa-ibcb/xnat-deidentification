@@ -6,7 +6,7 @@
 
 */
 
-package org.nrg.xnat.turbine.modules.actions;
+package org.apache.turbine.app.xnat.modules.actions;
 
 import java.util.ArrayList;
 import java.util.Collections;

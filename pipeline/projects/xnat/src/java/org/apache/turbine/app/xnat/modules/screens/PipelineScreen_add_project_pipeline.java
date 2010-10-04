@@ -6,7 +6,7 @@
 
 */
 
-package org.nrg.xnat.turbine.modules.screens;
+package org.apache.turbine.app.xnat.modules.screens;
 
 import java.io.File;
 import java.util.ArrayList;
