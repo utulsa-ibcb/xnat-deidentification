@@ -1,0 +1,35 @@
+General big question:
+    What is the proper protocal for setting any kind of parameter for a pipeline?  I am talking site-wide parameters, project-dependent parameters, Experiment/MRSession-dependent parameters, Subject-dependent parameters, etc.  Also, what is the appropriate action class to use?  Mohana provided a file called BuildAction.java which had dependencies not present in my installation of xnat.
+
+How do I obtain paths to location in archive of any scan?  FULL DETAILS PLEASE, i.e. given that I am building a pipeline with the appliesTo attribute in the xnatInfo tag set to "MRSessionData", how do I specify the current project's experiments, its scans, the locations of its scans, etc to the pipeline?
+
+Transfer pipeline uses Transfer.java?
+
+Does one use beans to access attributes of various instances of xnat datatypes?
+If so, does one use an XML parser to populate the beans with particular values?
+If so, how would one go about doing that? (Obtaining paths to appropriate XML files, example parsing code, etc)
+
+Also: please give a method for obtaining attributes from a database for:
+    projects
+    subjects
+    experiments
+    mrsessions
+    mrscans
+    What do you think is good for what we are trying to do?
+
+Where does the Velocity engine get its variables set in the Java source (e.g., "par_count?")
+If there are multiple places where Contexts get set, what is the "theme" for each different place where it gets set?
+
+Which templates go where?
+
+What is the purpose of business objects (stuff in *.om packages)?  I read something about using them for creating custom methods.  Example of when that would be useful?
+
+If the update script sees files/templates of identical names in both "projects" and "plugin_resources", does it choose the one in "projects"?
+
+Location(s) of security clearance for a particular user?  How do I set it for a pipeline parameter?
+
+StringUtils: why not just use the Java Pattern class?
+
+Broken links
+
+If it becomes necessary to modify something in xdat_core, how does one go about building those changes?  In the guide for submitting a patch for xnat, it mentions that you should test your patch before committing it, but it never says how to go about testing it.  How?
