@@ -1,6 +1,23 @@
 package org.ibcb.xnat.redaction;
+
 import java.sql.*;
+import org.postgresql.jdbc2.optional.PoolingDataSource;
+
+//import java.sql.;
 public class DB_Connection {
+	PoolingDataSource datasource;
+	public DB_Connection()
+	{
+		datasource=new PoolingDataSource();
+		datasource.setDataSourceName("A Pooling Source");
+		datasource.setServerName("localhost");
+		datasource.setDatabaseName("PrivacyDB");
+		datasource.setUser("xnat");
+		datasource.setPassword("xnat");
+		datasource.setMaxConnections(20);
+		
+		
+	}
 	
 	public Connection getConnection()
 	{
@@ -8,7 +25,7 @@ public class DB_Connection {
 		try {
 			Class.forName("org.postgresql.Driver");
 			try {
-				con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/PrivacyDB","xnat", "xnat");
+				con = datasource.getConnection();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
