@@ -12,11 +12,12 @@ public class Test {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
-		DB_Connection db = new DB_Connection();
-		Connection con = db.getConnection();
+		
+		//Connection con = db.getConnection();
 		SubjectInfo info = new SubjectInfo("sub_test","phi_test","req_test,","proj_test");
-	
-		db.insert_subjectinfo(info,con);
+		DB_Connection db = new DB_Connection(info);
+		//db.insert_subjectinfo(info,con);
+		new Thread(db).run();
 	
 	}
 
