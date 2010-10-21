@@ -28,7 +28,7 @@ public class DB_Connection implements Runnable{
 		datasource.setMaxConnections(20);
 		data=s;
 	}
-	public Connection getConnection()
+	protected Connection getConnection()
 	{
 		Connection con = null;
 		try {
@@ -128,7 +128,8 @@ public class DB_Connection implements Runnable{
 				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println("Foreign key con");
 			}
 			
 			
