@@ -44,13 +44,12 @@ public class DB_Connection implements Runnable{
 		data=r;
 		this.type_of_work=type_of_work;
 	}
-<<<<<<< HEAD
+
 	
 
-	public Connection getConnection()
-=======
+
 	protected Connection getConnection()
->>>>>>> afaad2726e8ef736779f88544fced16a045b1e16
+
 	{
 		Connection con = null;
 		try {
