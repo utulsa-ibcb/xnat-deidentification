@@ -104,5 +104,18 @@ public class DB_Connection {
 		}
 		return result;
 	}
+	public int insert_subjectinfo(SubjectInfo s,Connection con)
+	{
+		int result = 0;
+		try {
+			Statement stmt = con.createStatement();
+			result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
 
 }
