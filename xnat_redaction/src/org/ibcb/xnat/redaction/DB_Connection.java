@@ -1,13 +1,17 @@
 package org.ibcb.xnat.redaction;
 
 import java.sql.*;
+
 import org.postgresql.jdbc2.optional.PoolingDataSource;
 //import org.postgresql.jdbc4.Jdbc4Connection;
 
 //import java.sql.;
 public class DB_Connection extends Thread{
+
 	PoolingDataSource datasource;
 	Object data;
+	private String type_of_work;
+	protected Statement stmt;
 	public DB_Connection()
 	{
 		datasource=new PoolingDataSource();   //Use pooling data source to provide connection pool
@@ -18,7 +22,7 @@ public class DB_Connection extends Thread{
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 	}
-	public DB_Connection(SubjectInfo s)
+	public DB_Connection(SubjectInfo s,String type_of_work)
 	{
 		datasource=new PoolingDataSource();
 		datasource.setDataSourceName("A Pooling Source");
@@ -28,8 +32,26 @@ public class DB_Connection extends Thread{
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 		data=s;
+		this.type_of_work=type_of_work;
 	}
+	public DB_Connection(RequestInfo r,String type_of_work)
+	{
+		datasource=new PoolingDataSource();
+		datasource.setDataSourceName("A Pooling Source");
+		datasource.setServerName("localhost");
+		datasource.setDatabaseName("PrivacyDB");
+		datasource.setUser("xnat");
+		datasource.setPassword("xnat");
+		datasource.setMaxConnections(20);
+		data=r;
+		this.type_of_work=type_of_work;
+	}
+
+	
+
+
 	protected Connection getConnection()
+
 	{
 		Connection con = null;
 		try {
@@ -124,8 +146,26 @@ public class DB_Connection extends Thread{
 			SubjectInfo s=(SubjectInfo)data;
 			int result = 0;
 			try {
-				Statement stmt = newcon.createStatement();
-				result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
+				if(this.type_of_work.equalsIgnoreCase("insert_into_subjectinfo"))
+				{
+					stmt = newcon.createStatement();
+					result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
+				
+					System.out.println(result);
+				}
+				if(this.type_of_work.equalsIgnoreCase("select_subjectid_data"))
+				{
+					stmt = newcon.createStatement();
+					ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo;");
+					while(rs.next())
+					{
+						System.out.println(rs.getString("subjectid"));
+					}
+				}
+				else
+				{
+					System.out.println("Wrong type of work");
+				}
 				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -135,6 +175,20 @@ public class DB_Connection extends Thread{
 			
 			
 		}
+		if(data.getClass()==RequestInfo.class)
+		{
+			Connection newcon=this.getConnection();
+			RequestInfo r=(RequestInfo)data;
+			int result =0;
+			try {
+				stmt = newcon.createStatement();
+				result=stmt.executeUpdate("INSERT INTO requestinfo VALUES('"+r.getRequestid()+"','"+r.getUserid()+"','"+r.getDate()+"','"+r.getAdminid()+"','"+r.getCheckoutinfo()+"');");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
+	
 
 }
