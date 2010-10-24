@@ -2,14 +2,15 @@ package org.ibcb.xnat.redaction;
 
 import java.sql.*;
 import org.postgresql.jdbc2.optional.PoolingDataSource;
+//import org.postgresql.jdbc4.Jdbc4Connection;
 
 //import java.sql.;
-public class DB_Connection implements Runnable{
+public class DB_Connection extends Thread{
 	PoolingDataSource datasource;
 	Object data;
 	public DB_Connection()
 	{
-		datasource=new PoolingDataSource();
+		datasource=new PoolingDataSource();   //Use pooling data source to provide connection pool
 		datasource.setDataSourceName("A Pooling Source");
 		datasource.setServerName("localhost");
 		datasource.setDatabaseName("PrivacyDB");
