@@ -12,6 +12,8 @@ public class DBManager extends Thread{
 	private Object data;
 	public static final int INSERT_REQUESTINFO=0;
 	public static final int INSERT_SUBJECTINFO=1;
+	public static final int QUERY_REQUESTINFO=2;
+	public static final int QUERY_SUBJECTINFO=3;
 	private int type_of_work;
 	protected Statement stmt;
 	static 
@@ -32,6 +34,10 @@ public class DBManager extends Thread{
 	public DBManager(RequestInfo r,int type_of_work)
 	{
 		data=r;
+		this.type_of_work=type_of_work;
+	}
+	public DBManager(int type_of_work)
+	{
 		this.type_of_work=type_of_work;
 	}
 
@@ -111,71 +117,87 @@ public class DBManager extends Thread{
 		}
 		return result;
 	}
-	public int insert_subjectinfo(SubjectInfo s,Connection con)
+
+	public void insert_requestinfo()
 	{
-		int result = 0;
+		Connection newcon=this.getConnection();
+		RequestInfo r=(RequestInfo)data;
+		int result =0;
 		try {
-			Statement stmt = con.createStatement();
-			result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
-			
-		} catch (SQLException e) {
+				stmt = newcon.createStatement();
+				result=stmt.executeUpdate("INSERT INTO requestinfo VALUES('"+r.getRequestid()+"','"+r.getUserid()+"','"+r.getDate()+"','"+r.getAdminid()+"','"+r.getCheckoutinfo()+"');");
+				
+			} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return result;
+	}
+	public void insert_subjectinfo()
+	{
+		Connection newcon=this.getConnection();
+		SubjectInfo s=(SubjectInfo)data;
+		int result = 0;
+		try {
+				stmt = newcon.createStatement();
+				result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			//System.out.println("Foreign key con");
+		}
 	}
 
+	public void query_requestinfo()
+	{
+		Connection newcon = this.getConnection();
+		if(this.type_of_work==QUERY_REQUESTINFO)
+		{
+			try {
+				stmt = newcon.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo;");
+				System.out.println("requestid"+"\t"+"userid"+"\t"+"date"+"\t"+"adminid"+"\t"+"checkoutinfo");
+				while(rs.next())
+				{
+					System.out.print(rs.getString("requestid")+"\t");
+					System.out.print(rs.getString("userid")+"\t");
+					System.out.print(rs.getString("date")+"\t");
+					System.out.print(rs.getString("adminid")+"\t");
+					System.out.print(rs.getString("checkoutinfo")+"\t");
+					System.out.println();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		if (data.getClass()==SubjectInfo.class)
+
+		if(this.type_of_work==QUERY_REQUESTINFO)
 		{
-			Connection newcon=this.getConnection();
-			SubjectInfo s=(SubjectInfo)data;
-			int result = 0;
-			try {
-				if(this.type_of_work==INSERT_SUBJECTINFO)
-				{
-					stmt = newcon.createStatement();
-					result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
-				
-					System.out.println(result);
-				}
-				if(this.type_of_work==INSERT_REQUESTINFO)
-				{
-					stmt = newcon.createStatement();
-					ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo;");
-					while(rs.next())
-					{
-						System.out.println(rs.getString("subjectid"));
-					}
-				}
-				else
-				{
-					System.out.println("Wrong type of work");
-				}
-				
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				//System.out.println("Foreign key con");
-			}
-			
-			
+			this.query_requestinfo();
 		}
-		if(data.getClass()==RequestInfo.class)
+		if(this.type_of_work==INSERT_SUBJECTINFO)
 		{
-			Connection newcon=this.getConnection();
-			RequestInfo r=(RequestInfo)data;
-			int result =0;
-			try {
-				stmt = newcon.createStatement();
-				result=stmt.executeUpdate("INSERT INTO requestinfo VALUES('"+r.getRequestid()+"','"+r.getUserid()+"','"+r.getDate()+"','"+r.getAdminid()+"','"+r.getCheckoutinfo()+"');");
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (data.getClass()==SubjectInfo.class)
+			{
+				this.insert_subjectinfo();
+				System.out.println("succeed in inserting into subjectinfo!!");
 			}
 		}
+		if(this.type_of_work==INSERT_REQUESTINFO)
+		{
+			if(data.getClass()==RequestInfo.class)
+			{
+				this.insert_requestinfo();
+				System.out.println("succeed in inserting into requestinfo!!");
+			}
+		}
+		
 	}
 	
 
