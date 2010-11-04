@@ -14,6 +14,7 @@ public class DBManager extends Thread{
 	public static final int INSERT_SUBJECTINFO=1;
 	public static final int QUERY_REQUESTINFO=2;
 	public static final int QUERY_SUBJECTINFO=3;
+	public static final int QUERY_UNITED=4;
 	private int type_of_work;
 	protected Statement stmt;
 	static 
@@ -156,7 +157,7 @@ public class DBManager extends Thread{
 			try {
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo;");
-				System.out.println("requestid"+"\t"+"userid"+"\t"+"date"+"\t"+"adminid"+"\t"+"checkoutinfo");
+				System.out.println("requestid"+"\t"+"userid"+"\t\t"+"date"+"\t\t"+"adminid"+"\t\t"+"checkoutinfo");
 				while(rs.next())
 				{
 					System.out.print(rs.getString("requestid")+"\t");
@@ -173,29 +174,91 @@ public class DBManager extends Thread{
 			
 		}
 	}
+	public void query_subjectinfo()
+	{
+		Connection newcon = this.getConnection();
+		if(this.type_of_work==QUERY_SUBJECTINFO)
+		{
+			try {
+				stmt = newcon.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo;");
+				System.out.println("subjectid"+"\t"+"fakephidata"+"\t"+"requestid"+"\t"+"projectid");
+				while(rs.next())
+				{
+					System.out.print(rs.getString("subjectid")+"\t");
+					System.out.print(rs.getString("fakephidata")+"\t");
+					System.out.print(rs.getString("requestid")+"\t");
+					System.out.print(rs.getString("projectid")+"\t");
+					System.out.println();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	public void query_united()
+	{
+		Connection newcon = this.getConnection();
+		if(this.type_of_work==QUERY_UNITED)
+		{
+			try {
+				stmt = newcon.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo sub, requestinfo re where sub.requestid=re.requestid;");
+				System.out.println("subjectid"+"\t"+"fakephidata"+"\t"+"requestid"+"\t"+"projectid\t"+"date\t\t"+"adminid\t\t"+"checkoutinfo\t");
+				while(rs.next())
+				{
+					System.out.print(rs.getString("subjectid")+"\t");
+					System.out.print(rs.getString("fakephidata")+"\t");
+					System.out.print(rs.getString("requestid")+"\t");
+					System.out.print(rs.getString("projectid")+"\t");
+					System.out.print(rs.getString("date")+"\t");
+					System.out.print(rs.getString("adminid")+"\t");
+					System.out.print(rs.getString("checkoutinfo")+"\t");
+					System.out.println();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 
-		if(this.type_of_work==QUERY_REQUESTINFO)
+		switch(this.type_of_work)
 		{
+		case QUERY_REQUESTINFO:
 			this.query_requestinfo();
-		}
-		if(this.type_of_work==INSERT_SUBJECTINFO)
-		{
+			break;
+		case QUERY_SUBJECTINFO:
+			this.query_subjectinfo();
+			break;
+		case QUERY_UNITED:
+			this.query_united();
+			break;
+		case INSERT_SUBJECTINFO:
 			if (data.getClass()==SubjectInfo.class)
 			{
 				this.insert_subjectinfo();
 				System.out.println("succeed in inserting into subjectinfo!!");
 			}
-		}
-		if(this.type_of_work==INSERT_REQUESTINFO)
-		{
+			break;
+		case INSERT_REQUESTINFO:
 			if(data.getClass()==RequestInfo.class)
 			{
 				this.insert_requestinfo();
 				System.out.println("succeed in inserting into requestinfo!!");
 			}
+			break;
+			default:
+				System.out.println("WRONG TYPE OF WORK!!!");
+				break;
+			
 		}
 		
 	}
