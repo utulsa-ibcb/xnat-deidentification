@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
 import org.ibcb.xnat.redaction.interfaces.RedactionPipelineService;
 
 public class JobQueue extends RedactionPipelineService {
@@ -86,6 +87,9 @@ public class JobQueue extends RedactionPipelineService {
 		return singleton;
 	}
 	
+	public synchronized void initialize() throws PipelineServiceException{
+		
+	}
 	
 	public HashMap<Long, Job> jobs_by_id;
 	public HashMap<String, Job> jobs_by_name;

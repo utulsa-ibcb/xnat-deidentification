@@ -1,4 +1,4 @@
-package org.ibcb.xnat.redaction.ruleset;
+package org.ibcb.xnat.redaction.config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +10,8 @@ import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.regex.*;
 
+import org.ibcb.xnat.redaction.exceptions.CompileException;
+
 /**
  * This is a class for compiling and interpretting written ruleset files, according to the 
  * language as defined at {@link https://intranet.truedigitalsecurity.com/mediawiki/index.php/Alert_Monitoring_System_Filter:_Rule_Language_Specification_and_Examples}
@@ -17,7 +19,7 @@ import java.util.regex.*;
  * @author mkmatlock
  *
  */
-public class ConflictFilter {
+public class CheckoutRuleset {
 	private static int BUF_LEN = 50;
 	private static boolean DEBUG = false;
 	
@@ -115,7 +117,7 @@ public class ConflictFilter {
 	 * @param ip The ip address in x.x.x.x format
 	 * @return A boolean indicating IP classification
 	 */
-	public static boolean isPrivateIP(String ip, ConflictFilter filter){
+	public static boolean isPrivateIP(String ip, CheckoutRuleset filter){
 		HashMap<String,String> ipfields = new HashMap<String, String>();
 		ipfields.put("IP", ip);
 		boolean b = privateRange.checkFields(ipfields, filter);
@@ -387,7 +389,7 @@ public class ConflictFilter {
 		 * @param fields The field values
 		 * @return A boolean indicating validity of the rules on fields
 		 */
-		public boolean checkFields(Map<String,String> fields, ConflictFilter filter){
+		public boolean checkFields(Map<String,String> fields, CheckoutRuleset filter){
 			if(condition!=null){
 				boolean b1 = condition.check(fields);
 				if(DEBUG) System.out.println("cond: " + b1);
@@ -451,7 +453,7 @@ public class ConflictFilter {
 		 * @param fields The field values
 		 * @return A boolean indicating validity of the rules on fields
 		 */
-		public boolean checkFields(Map<String,String> fields, ConflictFilter filter){
+		public boolean checkFields(Map<String,String> fields, CheckoutRuleset filter){
 			if(conditions!=null) return conditions.checkFields(fields, filter);
 			return true;
 		}
@@ -1667,13 +1669,6 @@ public class ConflictFilter {
 		}
 	}
 	
-	public static class CompileException extends Exception {
-		static final long serialVersionUID=1;
-		public CompileException(String s){
-			super(s);
-		}
-	}
-	
 	static final int drop_on_sight = 0;
 	static final int resolve_pass  = 1;
 	static final int resolve_drop  = 2;
@@ -1918,7 +1913,7 @@ public class ConflictFilter {
 	 * Check to see if a given IP is in the private range.
 	 * @param ip
 	 */
-	public static void testIP(String ip, ConflictFilter filter){
+	public static void testIP(String ip, CheckoutRuleset filter){
 		boolean b = isPrivateIP(ip, filter);
 		System.out.println("IP: " + ip + " is " + (b ? "" : " not ") + "in the private range.");
 	}
