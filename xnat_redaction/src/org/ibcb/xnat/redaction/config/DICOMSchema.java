@@ -19,6 +19,14 @@ public class DICOMSchema {
 		dicom_name_map = new HashMap<Pair<Integer, Integer>, String>();
 	}
 	
+
+	public String getDICOMFieldName(Pair<Integer, Integer> field_id){
+		if(dicom_name_map.containsKey(field_id)){
+			return dicom_name_map.get(field_id);
+		}
+		return null;
+	}
+	
 	private void parseLine(String line, int lnum) throws CompileException{
 		if(line.endsWith("\n"))
 			line = line.substring(0, line.length()-1);

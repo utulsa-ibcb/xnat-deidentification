@@ -13,7 +13,7 @@ import java.util.regex.*;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 
 /**
- * This is a class for compiling and interpretting written ruleset files, according to the 
+ * This is a class for compiling and interpreting written rule-set files, according to the 
  * language as defined at {@link https://intranet.truedigitalsecurity.com/mediawiki/index.php/Alert_Monitoring_System_Filter:_Rule_Language_Specification_and_Examples}
  * And for filtering based upon these compiled rules.
  * @author mkmatlock

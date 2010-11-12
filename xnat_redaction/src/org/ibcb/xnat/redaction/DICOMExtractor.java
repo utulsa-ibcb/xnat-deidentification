@@ -2,12 +2,14 @@ package org.ibcb.xnat.redaction;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractSet;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import org.dcm4che2.*;
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
+import org.dcm4che2.data.SpecificCharacterSet;
 import org.dcm4che2.io.DicomInputStream;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.DICOMSchema;
@@ -90,15 +92,16 @@ public class DICOMExtractor extends RedactionPipelineService{
 	}
 	
 	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj){
+
+		SpecificCharacterSet scs = new SpecificCharacterSet("latin1"); 
+		
 		HashMap<String, String> dicomPairs = new HashMap<String,String>();
 		
-//		Iterator<DicomElement> it = dcmObj.fileMetaInfoIterator();
-//		while(it.hasNext()){
-//			DicomElement e = it.next();
-//		}
 		Iterator<DicomElement> it = dcmObj.iterator();
 		while(it.hasNext()){
 			DicomElement e = it.next();
+			
+			System.out.println(e.toString());
 		}
 		return dicomPairs;
 	}
