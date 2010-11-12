@@ -1,0 +1,17 @@
+import java.util.PriorityQueue;
+
+public class Test{
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		PriorityQueue pq = new PriorityQueue();
+		pq.add(new Integer(1));
+		System.out.println(pq);
+		
+
+	}
+
+}

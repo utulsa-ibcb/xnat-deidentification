@@ -15,6 +15,8 @@ public class DBManager extends Thread{
 	public static final int QUERY_REQUESTINFO=2;
 	public static final int QUERY_SUBJECTINFO=3;
 	public static final int QUERY_UNITED=4;
+	public static final int UPDATE_REQUESTINFO=5;
+	public static final int UPDATE_SUBJECTINFO=6;
 	private int type_of_work;
 	protected Statement stmt;
 	static 
@@ -40,6 +42,24 @@ public class DBManager extends Thread{
 	public DBManager(int type_of_work)
 	{
 		this.type_of_work=type_of_work;
+	}
+	public static final String SUBJECTID="subjectid";
+	public static final String FAKEPHIDATA="fakephidata";
+	public static final String REQUESTID="requestid";
+	public static final String PROJECTID="projectid";
+	private String target;
+	private String tar_val;
+	private String reference;
+	private String ref_val;
+	public DBManager(int type_of_work,String target,String tar_val,String reference,String ref_val )
+	{
+		//data=s;
+		this.type_of_work=type_of_work;
+		this.target=target;
+		this.tar_val=tar_val;
+		this.reference=reference;
+		this.ref_val=ref_val;
+		
 	}
 
 	
@@ -226,6 +246,25 @@ public class DBManager extends Thread{
 			
 		}
 	}
+
+	public void update_subjectinfo()
+	{
+		Connection newcon = this.getConnection();
+		//SubjectInfo s = (SubjectInfo)data;
+		if(this.type_of_work==UPDATE_SUBJECTINFO)
+		{
+			try {
+				stmt = newcon.createStatement();
+				int result = stmt.executeUpdate("UPDATE subjectinfo SET "+this.target+"='"+this.tar_val+"' where "+this.reference+"='"+this.ref_val+"';");
+			
+				System.out.println("SUCCESSFULLY UPDATED,"+result+"COLUMN(S) AFFECTED");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
@@ -240,6 +279,9 @@ public class DBManager extends Thread{
 			break;
 		case QUERY_UNITED:
 			this.query_united();
+			break;
+		case UPDATE_SUBJECTINFO:	
+			this.update_subjectinfo();
 			break;
 		case INSERT_SUBJECTINFO:
 			if (data.getClass()==SubjectInfo.class)

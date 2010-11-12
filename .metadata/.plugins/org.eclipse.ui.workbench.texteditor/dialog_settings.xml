@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="293" key="DIALOG_WIDTH"/>
+		<item value="246" key="DIALOG_Y_ORIGIN"/>
+		<item value="639" key="DIALOG_X_ORIGIN"/>
+		<item value="408" key="DIALOG_HEIGHT"/>
+		<item value="1|Microsoft YaHei|8.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="true" key="wrap"/>
+		<item value="true" key="casesensitive"/>
+		<item value="true" key="isRegEx"/>
+		<item value="false" key="incremental"/>
+		<item value="false" key="wholeword"/>
+		<item value="" key="selection"/>
+		<list key="findhistory">
+			<item value="spike.add("/>
+			<item value="PriorityQueue"/>
+			<item value="noLongerIn"/>
+			<item value="includedIn"/>
+			<item value="it"/>
+			<item value="setEffPriority"/>
+			<item value="private"/>
+			<item value="protected"/>
+		</list>
+		<list key="replacehistory">
+			<item value="spike.add((Integer)"/>
+			<item value="PriorityQ"/>
+			<item value="notIn"/>
+			<item value="include"/>
+			<item value="queueIterator"/>
+			<item value="setEffectivePriority"/>
+			<item value="private"/>
+			<item value="Vector"/>
+		</list>
+	</section>
+</section>
