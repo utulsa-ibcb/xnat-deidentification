@@ -28,9 +28,11 @@ public class Test {
 		//new Thread(united).run();
 		
 		
-		DBManager update1 = new DBManager(DBManager.UPDATE_SUBJECTINFO,DBManager.FAKEPHIDATA,"phi_test11",DBManager.PROJECTID,"sub_test1");
-		new Thread(update1).run();
+		//DBManager update1 = new DBManager(DBManager.UPDATE_SUBJECTINFO,DBManager.FAKEPHIDATA,"phi_test11",DBManager.PROJECTID,"sub_test1");
+		//new Thread(update1).run();
+		DBManager update2 = new DBManager(DBManager.UPDATE_REQUESTINFO,DBManager.CHECKOUTINFO,"{update,update,update,update}",DBManager.ADMINID,"adm_test1");
 			
+		new Thread(update2).run();
 	}
 
 }

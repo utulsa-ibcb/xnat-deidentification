@@ -47,6 +47,10 @@ public class DBManager extends Thread{
 	public static final String FAKEPHIDATA="fakephidata";
 	public static final String REQUESTID="requestid";
 	public static final String PROJECTID="projectid";
+	public static final String USERID="userid";
+	public static final String DATE="date";
+	public static final String ADMINID="adminid";
+	public static final String CHECKOUTINFO="checkoutinfo";
 	private String target;
 	private String tar_val;
 	private String reference;
@@ -84,61 +88,7 @@ public class DBManager extends Thread{
 		return con;
 	}
 
-	public void query_print(String var_name,String table_name,Connection con)
-	{
-		try{
-		PreparedStatement pstat = con.prepareStatement("select "+var_name+" from "+table_name+";");
-		ResultSet rs = pstat.executeQuery();
-		while(rs.next())
-		{
-			
-			System.out.println(rs.getString("subjectid"));
-		}
-		}catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-	public ResultSet query(String var_name,String table_name,Connection con)
-	{
-		PreparedStatement pstat;
-		ResultSet rs =null;
-		try {
-			pstat = con.prepareStatement("select "+var_name+" from "+table_name+";");
-			rs = pstat.executeQuery();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return rs;
-	}
-	public int add(Connection con,String sql)
-	{
-		int result=0;
-		try {
-			Statement stat = con.createStatement();
-			
-			result = stat.executeUpdate(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return result;
-	}
-	public int update(Connection con,String sql)
-	{
-		int result=0;
-		try {
-			Statement stat = con.createStatement();
-			
-			result = stat.executeUpdate(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return result;
-	}
-
+	
 	public void insert_requestinfo()
 	{
 		Connection newcon=this.getConnection();
@@ -250,12 +200,30 @@ public class DBManager extends Thread{
 	public void update_subjectinfo()
 	{
 		Connection newcon = this.getConnection();
-		//SubjectInfo s = (SubjectInfo)data;
+				
 		if(this.type_of_work==UPDATE_SUBJECTINFO)
 		{
 			try {
 				stmt = newcon.createStatement();
 				int result = stmt.executeUpdate("UPDATE subjectinfo SET "+this.target+"='"+this.tar_val+"' where "+this.reference+"='"+this.ref_val+"';");
+			
+				System.out.println("SUCCESSFULLY UPDATED,"+result+"COLUMN(S) AFFECTED");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	public void update_requestinfo()
+	{
+		Connection newcon = this.getConnection();
+		
+		if(this.type_of_work==UPDATE_REQUESTINFO)
+		{
+			try {
+				stmt = newcon.createStatement();
+				int result = stmt.executeUpdate("UPDATE requestinfo SET "+this.target+"='"+this.tar_val+"' where "+this.reference+"='"+this.ref_val+"';");
 			
 				System.out.println("SUCCESSFULLY UPDATED,"+result+"COLUMN(S) AFFECTED");
 			} catch (SQLException e) {
@@ -282,6 +250,9 @@ public class DBManager extends Thread{
 			break;
 		case UPDATE_SUBJECTINFO:	
 			this.update_subjectinfo();
+			break;
+		case UPDATE_REQUESTINFO:
+			this.update_requestinfo();
 			break;
 		case INSERT_SUBJECTINFO:
 			if (data.getClass()==SubjectInfo.class)
