@@ -1,0 +1,8 @@
+PatientAge		 (0010,1010)
+PatientBirthdate (0010,0030)
+PatientID		 (0010,0020)
+PatientName		 (0010,0010)
+StudyDate		 (0008,0020)
+SeriesDate		 (0008,0021)
+AcquisitionDate  (0008,0022)
+ContentDate		 (0008,0023)

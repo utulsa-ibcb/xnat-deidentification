@@ -33,7 +33,7 @@ public class DICOMSchema {
 		line = line.trim();
 		
 		try{
-			String items[] = line.split(" +");
+			String items[] = line.split("\\s+");
 			
 			String fieldname = items[0];
 			String field_location = items[1];

@@ -14,6 +14,7 @@ public class RedactionRuleset {
 	public static int OP_ELAPSED_TIME=1;	
 	
 	public static int PROTO_DICOM=0;
+	public static int PROTO_XNAT=1;
 	
 	public static class Rule {
 		int protocol;
@@ -38,13 +39,24 @@ public class RedactionRuleset {
 	private int getProtocolId(String proto){
 		if(proto.toLowerCase().equals("dicom"))
 			return PROTO_DICOM;
-		
+		if(proto.toLowerCase().equals("xnat"))
+			return PROTO_XNAT;
 		return -1;
 	}
 	
 	public boolean redact(int protocol, String field){
 		for(Rule r : ruleset){
 			if(r.protocol==protocol && r.field.equals(field) && r.redact){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean translate(int protocol, String field){
+		for(Rule r : ruleset){
+			if(r.protocol==protocol && r.field.equals(field) && r.translate){
 				return true;
 			}
 		}
