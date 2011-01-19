@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<aliases>
+  <alias auto-logon="true" connect-at-startup="false" driver-id="-7" has-no-user-name="false">
+    <name>xnat</name>
+    <url>jdbc:postgresql://localhost/PrivacyDB</url>
+    <folder-filter-expression></folder-filter-expression>
+    <name-filter-expression></name-filter-expression>
+    <schema-filter-expression></schema-filter-expression>
+    <users>
+      <user auto-commit="false" commit-on-close="false">
+        <user-name>xnat</user-name>
+        <password>xnat</password>
+      </user>
+    </users>
+    <default-user>xnat</default-user>
+  </alias>
+</aliases>

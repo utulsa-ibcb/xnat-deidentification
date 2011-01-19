@@ -1,0 +1,113 @@
+
+import java.util.LinkedList;
+import java.util.Random;
+
+public class simulation {
+
+	public int clock;
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		simulation sim=new simulation();
+		sim.run_simulation(1, 3, 2, 8, 3, 2000);
+
+		
+	}
+	public simulation()
+	{
+		clock=0;
+	}
+	
+	public void run_simulation(int num_of_cashier,int arrival_mean,int arrival_variance,int service_mean,int service_variance,int time_limit)
+	{
+	//	int totalidletime=0;
+		int totalinterarrival=0;
+		int totalservice=0;
+		int maxqueuelength=0;
+		int customercount=0;
+		int maxwaittime=0;
+		int totalwaittime=0;
+		PriorityQ pq=new PriorityQ();
+		clock=0;
+		 LinkedList<EventItem> eventqueue=new LinkedList<EventItem>();
+		 totalinterarrival=uniform(arrival_mean,arrival_variance);
+		 totalservice=uniform(service_mean,service_variance);
+		 eventqueue.add(new EventItem(0+totalinterarrival,totalservice,-1));
+		for(int i=1;i<num_of_cashier+1;i++)
+		{
+			TellerQueue newteller=new TellerQueue(i);
+			pq.priorityq.add(newteller);
+		}
+		System.out.println("Finish init");	
+		while(clock<time_limit)
+		{
+			EventItem currentnode=eventqueue.getFirst();
+			eventqueue.remove(currentnode);
+			clock=currentnode.time_of_day;
+			System.out.println("clock time changed to "+clock);
+			for (int i=0;i<pq.priorityq.size();i++)
+				if (pq.priorityq.get(i).tellerqueue.isEmpty())
+					pq.priorityq.get(i).IdleTime+=currentnode.time_of_day-clock;
+			
+			if (currentnode.type_of_event==-1)
+			{
+				System.out.println("get an arrival node");
+				TellerQueue shortestqueue=pq.peek();
+				shortestqueue.AddEventItem(currentnode);
+				int newarrival=uniform(arrival_mean,arrival_variance);
+				int newservice=uniform(service_mean,service_variance);
+				eventqueue.add(new EventItem(clock+newarrival,newservice,-1));
+				if (shortestqueue.tellerqueue.size()==1)
+					eventqueue.add(new EventItem(clock+currentnode.service_time,0,shortestqueue.QueueId));
+
+				totalinterarrival+=newarrival;
+				totalservice+=newservice;
+				for (int j=0;j<pq.priorityq.size();j++)
+					if (pq.priorityq.get(j).tellerqueue.size()>maxqueuelength) maxqueuelength=pq.priorityq.get(j).tellerqueue.size();
+			continue;
+			}
+			if (currentnode.type_of_event>0)
+			{
+				System.out.println("get an departure node");
+				customercount++;
+				if (clock-(currentnode.time_of_day+currentnode.service_time)>maxwaittime)
+					maxwaittime=clock-(currentnode.time_of_day+currentnode.service_time);
+				totalwaittime+=clock-(currentnode.time_of_day+currentnode.service_time);
+				for (int i=0;i<pq.priorityq.size();i++)
+				{
+					if (pq.priorityq.get(i).QueueId==currentnode.type_of_event)
+						{
+						if (pq.priorityq.get(i).tellerqueue.size()>0) pq.priorityq.get(i).tellerqueue.removeFirst();
+							if (pq.priorityq.get(i).tellerqueue.size()>0)
+							{
+								EventItem departbase=pq.priorityq.get(i).tellerqueue.getFirst();
+								eventqueue.add(new EventItem(clock+departbase.service_time,0,pq.priorityq.get(i).QueueId));
+							}
+						}
+				}
+				continue;
+			}
+			
+		}
+		System.out.println("finished!");
+
+		System.out.println("total interarrival time "+totalinterarrival);
+		System.out.println("total service time "+totalservice);
+		System.out.println("max queue length "+maxqueuelength);
+		System.out.println("customer count "+customercount);
+		System.out.println("max wait time "+maxwaittime);
+		System.out.println("total wait time "+totalwaittime);
+		}
+	
+	
+	public static int uniform(int mean,int variant)
+	{
+		Random rand=new Random();
+		int small=mean-variant;
+		int range=2*variant+1;
+		return small+rand.nextInt(range);
+	}
+
+}

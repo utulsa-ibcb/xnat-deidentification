@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<history>
+  <element execution-count="12" last-execution-time="1289516761325" alias="xnat" user-name="xnat">select * from subjectinfo</element>
+  <element execution-count="1" last-execution-time="1289514160584" alias="xnat" user-name="xnat">update subjectinfo set fakephidata='phi_test1' where requestid='req_test'</element>
+  <element execution-count="1" last-execution-time="1288906435624" alias="xnat" user-name="xnat">select * from subjectinfo sub, requestinfo re where sub.requestid=re.requestid</element>
+</history>

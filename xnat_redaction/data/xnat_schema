@@ -1,0 +1,9 @@
+xnat:age			PatientAge
+xnat:dob			PatientBirthdate
+xnat:gender			PatientGender
+xnat:handedness		PatientHandedness
+xnat:education		PatientEducation
+xnat:race			PatientRace
+xnat:ethnicity		PatientEthnicity
+xnat:weight			PatientWeight
+xnat:height			PatientHeight
