@@ -186,7 +186,7 @@ public class DBManager extends Thread{
 					System.out.print(rs.getString("projectid")+"\t");
 					System.out.print(rs.getString("date")+"\t");
 					System.out.print(rs.getString("adminid")+"\t");
-					System.out.print(rs.getString("checkoutinfo")+"\t");
+					System.out.print(rs.getArray("checkoutinfo")+"\t");
 					System.out.println();
 				}
 			} catch (SQLException e) {

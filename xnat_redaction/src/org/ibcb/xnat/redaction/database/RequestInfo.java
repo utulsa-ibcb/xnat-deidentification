@@ -5,10 +5,10 @@ public class RequestInfo {
 	private String requestid;
 	private String userid;
 	private String date;
-	private String checkoutinfo;
+	private int[] checkoutinfo;
 	private String adminid;
 	
-	public RequestInfo(String requestid,String userid,String date,String adminid,String checkoutinfo)
+	public RequestInfo(String requestid,String userid,String date,String adminid,int[] checkoutinfo)
 	{
 		this.requestid=requestid;
 		this.userid=userid;
@@ -34,10 +34,10 @@ public class RequestInfo {
 	public void setDate(String date) {
 		this.date = date;
 	}
-	public String getCheckoutinfo() {
+	public int[] getCheckoutinfo() {
 		return checkoutinfo;
 	}
-	public void setCheckoutinfo(String checkoutinfo) {
+	public void setCheckoutinfo(int[] checkoutinfo) {
 		this.checkoutinfo = checkoutinfo;
 	}
 	public String getAdminid() {
