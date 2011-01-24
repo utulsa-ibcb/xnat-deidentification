@@ -16,6 +16,14 @@ public class RequestInfo {
 		this.checkoutinfo=checkoutinfo;
 		this.adminid=adminid;
 	}
+	public RequestInfo(String requestid,String userid,String date,String adminid,String checkoutinfo)
+	{
+		this.requestid=requestid;
+		this.userid=userid;
+		this.date=date;
+		this.checkoutinfo=ArrayParse(checkoutinfo);
+		this.adminid=adminid;
+	}
 	public String getRequestid() {
 		return requestid;
 	}
@@ -46,7 +54,20 @@ public class RequestInfo {
 	public void setAdminid(String adminid) {
 		this.adminid = adminid;
 	}
-	
+	protected int[] ArrayParse(String input)
+	{
+		input.replace('{', ' ');
+		input.replace('}', ' ');
+		String[] lines=input.split(",");
+		int[] returnArray=new int[lines.length];
+		for (int i=0;i<lines.length;i++)
+		{
+			returnArray[i]=Integer.parseInt(lines[i]);			
+		}
+		return returnArray;
+		
+	}
+
 	
 
 }

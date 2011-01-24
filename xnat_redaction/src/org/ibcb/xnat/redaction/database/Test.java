@@ -15,17 +15,18 @@ public class Test {
 		//SubjectInfo info = new SubjectInfo("sub_test3","phi_test3","req_test3","proj_test3");
 //Problem....
 		
-		RequestInfo rinfo = new RequestInfo("req_test6","usr_test6","2011-01-23","adm_test6",new int[]{1,2,3,4,5,6});
-		DBManager db1 = new DBManager(rinfo,DBManager.INSERT_REQUESTINFO);
+		//RequestInfo rinfo = new RequestInfo("req_test6","usr_test6","2011-01-23","adm_test6",new int[]{1,2,3,4,5,6});
+		//DBManager db1 = new DBManager(rinfo,DBManager.INSERT_REQUESTINFO);
 		//DBManager db = new DBManager(info,DBManager.INSERT_SUBJECTINFO);
-		//DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
+		DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
 		//DBManager db3 = new DBManager(DBManager.QUERY_SUBJECTINFO);
 		//DBManager united = new DBManager(DBManager.QUERY_UNITED);
 		
 		
 		//new Thread(db).run();
-		new Thread(db1).run();
-		//new Thread(db2).run();
+		//new Thread(db1).run();
+		
+		new Thread(db2).run();
 		//new Thread(db3).run();
 		//new Thread(united).run();
 		

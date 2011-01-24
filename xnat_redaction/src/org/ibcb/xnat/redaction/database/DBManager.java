@@ -1,7 +1,6 @@
 package org.ibcb.xnat.redaction.database;
 
 import java.sql.*;
-
 import org.postgresql.jdbc2.optional.PoolingDataSource;
 //import org.postgresql.jdbc4.Jdbc4Connection;
 
@@ -66,7 +65,6 @@ public class DBManager extends Thread{
 		
 	}
 
-	
 
 
 	protected Connection getConnection()
@@ -106,7 +104,6 @@ public class DBManager extends Thread{
 						array=array+r.getCheckoutinfo()[i];
 						else
 						array=array+r.getCheckoutinfo()[i]+",";
-					
 					}
 				}
 				stmt = newcon.createStatement();
@@ -149,6 +146,7 @@ public class DBManager extends Thread{
 					System.out.print(rs.getString("date")+"\t");
 					System.out.print(rs.getString("adminid")+"\t");
 					System.out.print(rs.getString("checkoutinfo")+"\t");
+					RequestInfo newinfo=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
 					System.out.println();
 				}
 			} catch (SQLException e) {
