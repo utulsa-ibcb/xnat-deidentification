@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbench progressCount="9" version="2.0">
+<workbench progressCount="16" version="2.0">
 <workbenchAdvisor/>
 <window height="711" maximized="true" width="1024" x="-3" y="35">
 <fastViewData fastViewLocation="1024">
 <orientation position="512" view="org.eclipse.ui.navigator.ProjectExplorer"/>
 <orientation position="512" view="org.eclipse.jdt.ui.TypeHierarchy"/>
-<orientation position="512" view="org.eclipse.search.ui.views.SearchView"/>
 <orientation position="512" view="org.eclipse.ui.views.ResourceNavigator"/>
+<orientation position="512" view="org.eclipse.search.ui.views.SearchView"/>
 <orientation position="512" view="org.eclipse.jdt.ui.PackageExplorer"/>
 </fastViewData>
 <perspectiveBar>
@@ -37,13 +37,23 @@
 <folder appearance="1" expanded="2">
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
+<part id="1"/>
+<part id="2"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
-<editor activePart="true" focus="true" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="BinaryReplacement.java" partName="BinaryReplacement.java" path="/home/xinchi/workspace/xnat_redaction/src/org/ibcb/xnat/redaction/helpers/BinaryReplacement.java" title="BinaryReplacement.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/helpers/BinaryReplacement.java" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/xnat_redaction/src/org/ibcb/xnat/redaction/helpers/BinaryReplacement.java"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="756" selectionTopPixel="550"/>
+<editor activePart="true" focus="true" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Test.java" partName="Test.java" path="/home/xinchi/workspace/xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java" title="Test.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="473" selectionTopPixel="89"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="RequestInfo.java" partName="RequestInfo.java" path="/home/xinchi/workspace/xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java" title="RequestInfo.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="DBManager.java" partName="DBManager.java" path="/home/xinchi/workspace/xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java" title="DBManager.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="18" selectionOffset="2447" selectionTopPixel="1305"/>
 </editor>
 </editors>
 <views>
@@ -94,9 +104,10 @@
 <view id="org.eclipse.ui.views.ProblemView" partName="Problems">
 <viewState PRIMARY_SORT_FIELD="org.eclipse.ui.ide.severityAndDescriptionField" categoryGroup="org.eclipse.ui.ide.severity" markerContentGenerator="org.eclipse.ui.ide.problemsGenerator" partName="Problems">
 <expanded>
+<category IMemento.internal.id="Errors"/>
 <category IMemento.internal.id="Warnings"/>
 </expanded>
-<columnWidths org.eclipse.ui.ide.locationField="0" org.eclipse.ui.ide.markerType="0" org.eclipse.ui.ide.pathField="0" org.eclipse.ui.ide.resourceField="0" org.eclipse.ui.ide.severityAndDescriptionField="0"/>
+<columnWidths org.eclipse.ui.ide.locationField="53" org.eclipse.ui.ide.markerType="230" org.eclipse.ui.ide.pathField="103" org.eclipse.ui.ide.resourceField="78" org.eclipse.ui.ide.severityAndDescriptionField="250"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.severityAndDescriptionField"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.resourceField"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.pathField"/>
@@ -173,7 +184,7 @@
 <view id="org.eclipse.ui.views.ProblemView" ratio="0.3"/>
 <view id="org.eclipse.jdt.ui.JavadocView" ratio="0.3"/>
 <view id="org.eclipse.jdt.ui.SourceView" ratio="0.3"/>
-<view id="org.eclipse.ui.console.ConsoleView" ratio="0.3"/>
+<view id="org.eclipse.ui.console.ConsoleView" ratio="0.2993311"/>
 </fastViews>
 </fastViewBar>
 <fastViewBar fastViewLocation="16384" id="left" orientation="512" selectedTabId="org.eclipse.ui.navigator.ProjectExplorer" style="1">
@@ -380,31 +391,11 @@
 <editors>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/xnat_redaction/src/org/ibcb/xnat/redaction/helpers/BinaryReplacement.java"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.ui.DefaultTextEditor" path="/xnat_redaction/src/org/ibcb/xnat/redaction/helpers/whatever.txt"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java"/>
+<editor factoryID="org.eclipse.jdt.ui.ClassFileEditorInputFactory" id="org.eclipse.jdt.ui.ClassFileEditor" org.eclipse.jdt.ui.ClassFileIdentifier="=xnat_redaction/\/home\/xinchi\/Downloads\/jdk1.6.0_18\/jre\/lib\/rt.jar&lt;java.sql(Array.class"/>
 </editors>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position info="not_deleted" x="1878" y="0"/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position info="not_deleted" x="1727" y="0"/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position info="not_deleted" x="1841" y="0"/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position/>
-</item>
-<item historyLabel="BinaryReplacement.java" index="0">
-<position/>
-</item>
 <item historyLabel="BinaryReplacement.java" index="0">
 <position/>
 </item>
@@ -468,8 +459,92 @@
 <item historyLabel="whatever.txt" index="1">
 <position info="not_deleted" x="14" y="0"/>
 </item>
-<item active="true" historyLabel="BinaryReplacement.java" index="0">
+<item historyLabel="BinaryReplacement.java" index="0">
 <position info="not_deleted" x="756" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="RequestInfo.java" index="3">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="RequestInfo.java" index="3">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item historyLabel="RequestInfo.java" index="3">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="1294" y="0"/>
+</item>
+<item historyLabel="DBManager.java" index="4">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="1294" y="0"/>
+</item>
+<item historyLabel="DBManager.java" index="4">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="DBManager.java" index="4">
+<position info="not_deleted" x="320" y="18"/>
+</item>
+<item historyLabel="DBManager.java" index="4">
+<position info="not_deleted" x="2447" y="18"/>
+</item>
+<item historyLabel="RequestInfo.java" index="3">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item historyLabel="RequestInfo.java" index="3">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="DBManager.java" index="4">
+<position info="not_deleted" x="2447" y="18"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position/>
+</item>
+<item historyLabel="Array.class" index="5">
+<position info="not_deleted" x="2062" y="5"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="480" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="277" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="483" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="381" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="381" y="0"/>
+</item>
+<item historyLabel="Test.java" index="2">
+<position info="not_deleted" x="487" y="0"/>
+</item>
+<item active="true" historyLabel="Test.java" index="2">
+<position info="not_deleted" x="477" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/nachos/src/nachos/machine" type="2"/>
@@ -495,6 +570,18 @@
 </trimLayout>
 </window>
 <mruList>
+<file factoryID="org.eclipse.jdt.ui.ClassFileEditorInputFactory" id="org.eclipse.jdt.ui.ClassFileEditor" name="Array.class" tooltip="java.sql.Array">
+<persistable org.eclipse.jdt.ui.ClassFileIdentifier="=xnat_redaction/\/home\/xinchi\/Downloads\/jdk1.6.0_18\/jre\/lib\/rt.jar&lt;java.sql(Array.class"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="DBManager.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java">
+<persistable path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="RequestInfo.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java">
+<persistable path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/RequestInfo.java"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Test.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java">
+<persistable path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/Test.java"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.ui.DefaultTextEditor" name="whatever.txt" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/helpers/whatever.txt">
 <persistable path="/xnat_redaction/src/org/ibcb/xnat/redaction/helpers/whatever.txt"/>
 </file>
@@ -527,18 +614,6 @@
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="HashTable.java" tooltip="Project3/src/HashTable.java">
 <persistable path="/Project3/src/HashTable.java"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="TNode.java" tooltip="Project3/src/TNode.java">
-<persistable path="/Project3/src/TNode.java"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="DBManager.java" tooltip="xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java">
-<persistable path="/xnat_redaction/src/org/ibcb/xnat/redaction/database/DBManager.java"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Test.java" tooltip="Project2/src/Test.java">
-<persistable path="/Project2/src/Test.java"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Building.java" tooltip="Project2/src/Building.java">
-<persistable path="/Project2/src/Building.java"/>
 </file>
 </mruList>
 </workbench>

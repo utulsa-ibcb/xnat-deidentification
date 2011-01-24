@@ -2,6 +2,7 @@ package org.ibcb.xnat.redaction.database;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Array;
 
 
 public class Test {
@@ -11,10 +12,9 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
 		//SubjectInfo info = new SubjectInfo("sub_test3","phi_test3","req_test3","proj_test3");
 //Problem....
-		RequestInfo rinfo = new RequestInfo("req_test3","usr_test3","2010-10-28","adm_test3",new java.sql.Array(new int[]{1,2,3,4}));
+		RequestInfo rinfo = new RequestInfo("req_test3","usr_test3","2011-01-23","adm_test3",new int[]{1,2,3,4});
 		DBManager db1 = new DBManager(rinfo,DBManager.INSERT_REQUESTINFO);
 		//DBManager db = new DBManager(info,DBManager.INSERT_SUBJECTINFO);
 		//DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
@@ -31,9 +31,9 @@ public class Test {
 		
 		//DBManager update1 = new DBManager(DBManager.UPDATE_SUBJECTINFO,DBManager.FAKEPHIDATA,"phi_test11",DBManager.PROJECTID,"sub_test1");
 		//new Thread(update1).run();
-		DBManager update2 = new DBManager(DBManager.UPDATE_REQUESTINFO,DBManager.CHECKOUTINFO,"{update,update,update,update}",DBManager.ADMINID,"adm_test1");
+		//DBManager update2 = new DBManager(DBManager.UPDATE_REQUESTINFO,DBManager.CHECKOUTINFO,"{update,update,update,update}",DBManager.ADMINID,"adm_test1");
 			
-		new Thread(update2).run();
+		//new Thread(update2).run();
 	}
 
 }
