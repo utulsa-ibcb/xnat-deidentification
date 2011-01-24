@@ -91,12 +91,26 @@ public class DBManager extends Thread{
 	
 	public void insert_requestinfo()
 	{
+		String array="";
 		Connection newcon=this.getConnection();
 		RequestInfo r=(RequestInfo)data;
 		int result =0;
 		try {
+				for(int i=0;i<r.getCheckoutinfo().length;i++)
+				{
+					if(r.getCheckoutinfo().length==1)
+					array=r.getCheckoutinfo()[i]+"";	
+					else
+					{
+						if(i==r.getCheckoutinfo().length-1)
+						array=array+r.getCheckoutinfo()[i];
+						else
+						array=array+r.getCheckoutinfo()[i]+",";
+					
+					}
+				}
 				stmt = newcon.createStatement();
-				result=stmt.executeUpdate("INSERT INTO requestinfo VALUES('"+r.getRequestid()+"','"+r.getUserid()+"','"+r.getDate()+"','"+r.getAdminid()+"','"+r.getCheckoutinfo()+"');");
+				result=stmt.executeUpdate("INSERT INTO requestinfo VALUES('"+r.getRequestid()+"','"+r.getUserid()+"','"+r.getDate()+"','"+r.getAdminid()+"',ARRAY["+array+"]);");
 				
 			} catch (SQLException e) {
 			// TODO Auto-generated catch block
