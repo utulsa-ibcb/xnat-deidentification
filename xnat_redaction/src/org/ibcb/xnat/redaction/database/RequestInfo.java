@@ -24,6 +24,9 @@ public class RequestInfo {
 		this.checkoutinfo=ArrayParse(checkoutinfo);
 		this.adminid=adminid;
 	}
+	public RequestInfo() {
+		// TODO Auto-generated constructor stub
+	}
 	public String getRequestid() {
 		return requestid;
 	}
@@ -56,8 +59,8 @@ public class RequestInfo {
 	}
 	protected int[] ArrayParse(String input)
 	{
-		input.replace('{', ' ');
-		input.replace('}', ' ');
+		input=input.replace("{", "");
+		input=input.replace("}", "");
 		String[] lines=input.split(",");
 		int[] returnArray=new int[lines.length];
 		for (int i=0;i<lines.length;i++)
