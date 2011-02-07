@@ -53,7 +53,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "requestinfo", null).next())
 			  {
 				  System.out.println("Dont have requestinfo, will create one");
-				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  checkoutinfo bit(80),  adminid character varying(80),  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
+				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  adminid character varying(80),checkoutinfo integer[],  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -65,6 +65,21 @@ public class DBinit {
 			  }
 			  else
 				  System.out.println("Already have requestinfo table");
+			  if (!connection.getMetaData().getTables(null, null, "PHImap", null).next())
+			  {
+				  System.out.println("Dont have PHImap, will create one");
+				  String cmd ="CREATE TABLE PHImap(  UID integer,  PHI char[])WITH (  OIDS=FALSE);ALTER TABLE PHImap OWNER TO xnat;";
+				  Statement stat=connection.createStatement();
+				  try{stat.execute(cmd);}
+				  catch(SQLException e)
+				  {
+					  System.out.println("ERROR");
+					 // e.printStackTrace();
+					  
+				  }
+			  }
+			  else
+				  System.out.println("Already have PHImap table");
 		  }
 /* "SELECT relname FROM pg_class WHERE relname = 'SubjectInfo';";
 		  try {

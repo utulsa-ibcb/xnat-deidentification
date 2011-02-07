@@ -1,10 +1,11 @@
 package org.ibcb.xnat.redaction;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 import org.ibcb.xnat.redaction.config.CheckoutRuleset;
 import org.ibcb.xnat.redaction.config.Configuration;
-
+import org.ibcb.xnat.redaction.database.*;
 public class Loader {
 
 	
@@ -25,11 +26,19 @@ public class Loader {
 		// download project and subject ids
 		
 		// download checkout user information from our database -Liang
+		DBManager db=new DBManager(DBManager.GET_CHECKOUTINFO);
 		
 		// populate map of checkout fields -Liang
 		HashMap<String, String> requesting_user_data = new HashMap<String, String>();
-		
-		
+		try {
+			db.getCheckOutInfo(Integer.parseInt(co_user_id), requesting_user_data);
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		// run permissions checks against checkout ruleset information
 		boolean passed = cr.filter(requesting_user_data);

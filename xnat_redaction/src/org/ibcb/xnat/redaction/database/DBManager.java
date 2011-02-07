@@ -239,13 +239,12 @@ public class DBManager extends Thread{
 			
 		}
 	}
-	public HashMap<String,String> getCheckOutInfo(int userid) throws SQLException
+	public void getCheckOutInfo(int userid,HashMap<String,String> checkOutMap) throws SQLException
 	{
 		Connection newcon = this.getConnection();
 		if(this.type_of_work==GET_CHECKOUTINFO)
 		{
 			RequestInfo[] newinfo = null;
-			HashMap<String,String> checkOutMap=new HashMap<String,String>();
 			//Find the associated userids
 			try {
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
@@ -277,7 +276,6 @@ public class DBManager extends Thread{
 			
 			
 		}
-		return null;
 	}
 	public void update_subjectinfo()
 	{
