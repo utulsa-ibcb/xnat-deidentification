@@ -239,7 +239,7 @@ public class DBManager extends Thread{
 			
 		}
 	}
-	public HashMap<String,String> getCheckOutInfo(int userid)
+	public HashMap<String,String> getCheckOutInfo(int userid) throws SQLException
 	{
 		Connection newcon = this.getConnection();
 		if(this.type_of_work==GET_CHECKOUTINFO)
@@ -271,21 +271,6 @@ public class DBManager extends Thread{
 					if (!checkOutMap.containsKey(checkOutId))
 					checkOutMap.put(Integer.toString(checkOutId), "1");
 				}
-			}
-			//Get the name of checkout fields
-			try {
-				/*ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
-				rs.last();
-				int rowCount = rs.getRow();
-				rs.first();
-				RequestInfo[] newinfo=new RequestInfo[rowCount];
-				int i=0;
-				while(rs.next())
-				{		
-					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
-				}*/
-			} catch (SQLException e) {
-				e.printStackTrace();
 			}
 			
 			

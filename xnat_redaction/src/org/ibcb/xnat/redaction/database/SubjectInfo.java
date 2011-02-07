@@ -1,23 +1,20 @@
 package org.ibcb.xnat.redaction.database;
 
-import java.util.HashMap;
 
 public class SubjectInfo {
 	
 	private String subjectid;
-	//private String fakephidata;
+	private String fakephidata;
 	private String requestid;
 	private String projectid;
-	private HashMap<String,String> fakephidata;
 	
 	
-	public SubjectInfo(String sub,String phi_key,String phi_value,String req,String proj)
+	public SubjectInfo(String sub,String phi,String req,String proj)
 	{
 		this.subjectid=sub;
 		this.requestid=req;
 		this.projectid=proj;
-		this.fakephidata=new HashMap<String,String>();
-		fakephidata.put(phi_key, phi_value);
+		this.fakephidata=phi;
 	}
 	public String getSubjectid() {
 		return subjectid;
@@ -25,12 +22,11 @@ public class SubjectInfo {
 	public void setSubjectid(String subjectid) {
 		this.subjectid = subjectid;
 	}
-	public HashMap<String,String> getFakephidata() {
+	public String getFakephidata() {
 		return fakephidata;
 	}
-	public void setFakephidata(String phi_key,String phi_value) {
-		this.fakephidata = new HashMap<String,String>();
-		fakephidata.put(phi_key, phi_value);
+	public void setFakephidata(String phi) {
+		this.fakephidata = phi;
 		
 	}
 	public String getRequestid() {
