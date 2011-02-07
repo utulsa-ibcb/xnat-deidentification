@@ -3,14 +3,16 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Array;
+import java.util.HashMap;
 
 
 public class Test {
 
 	/**
 	 * @param args
+	 * @throws SQLException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
 		//SubjectInfo info = new SubjectInfo("sub_test3","phi_test3","req_test3","proj_test3");
 //Problem....
@@ -18,15 +20,15 @@ public class Test {
 		//RequestInfo rinfo = new RequestInfo("req_test6","usr_test6","2011-01-23","adm_test6",new int[]{1,2,3,4,5,6});
 		//DBManager db1 = new DBManager(rinfo,DBManager.INSERT_REQUESTINFO);
 		//DBManager db = new DBManager(info,DBManager.INSERT_SUBJECTINFO);
-		DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
+		//DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
 		//DBManager db3 = new DBManager(DBManager.QUERY_SUBJECTINFO);
 		//DBManager united = new DBManager(DBManager.QUERY_UNITED);
-		
+		DBManager single=new DBManager(DBManager.SINGLE_THREAD);
 		
 		//new Thread(db).run();
 		//new Thread(db1).run();
-		
-		new Thread(db2).run();
+		single.getCheckOutInfo(1, new HashMap<String,String>());
+		//new Thread(db2).run();
 		//new Thread(db3).run();
 		//new Thread(united).run();
 		

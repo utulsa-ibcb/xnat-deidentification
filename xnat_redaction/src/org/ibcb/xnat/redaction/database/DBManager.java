@@ -10,15 +10,17 @@ import org.postgresql.jdbc2.optional.PoolingDataSource;
 public class DBManager extends Thread{
 
 	private static PoolingDataSource datasource;
+	private static HashMap<String,String> PHImap;
 	private Object data;
-	public static final int INSERT_REQUESTINFO=0;
-	public static final int INSERT_SUBJECTINFO=1;
-	public static final int QUERY_REQUESTINFO=2;
-	public static final int QUERY_SUBJECTINFO=3;
-	public static final int QUERY_UNITED=4;
-	public static final int UPDATE_REQUESTINFO=5;
-	public static final int UPDATE_SUBJECTINFO=6;
-	public static final int GET_CHECKOUTINFO=7;
+	public static final int SINGLE_THREAD=0;
+	public static final int INSERT_REQUESTINFO=1;
+	public static final int INSERT_SUBJECTINFO=2;
+	public static final int QUERY_REQUESTINFO=3;
+	public static final int QUERY_SUBJECTINFO=4;
+	public static final int QUERY_UNITED=5;
+	public static final int UPDATE_REQUESTINFO=6;
+	public static final int UPDATE_SUBJECTINFO=7;
+	public static final int GET_CHECKOUTINFO=8;
 	private int type_of_work;
 	protected Statement stmt;
 	static 
@@ -30,20 +32,43 @@ public class DBManager extends Thread{
 		datasource.setUser("xnat");
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
+		
 	}
 	public DBManager(SubjectInfo s,int type_of_work)
 	{
 		data=s;
 		this.type_of_work=type_of_work;
+		Initializer();
 	}
 	public DBManager(RequestInfo r,int type_of_work)
 	{
 		data=r;
 		this.type_of_work=type_of_work;
+		Initializer();
 	}
 	public DBManager(int type_of_work)
 	{
 		this.type_of_work=type_of_work;
+		Initializer();
+	}
+	private void Initializer()
+	{
+		//init the phi map
+		PHImap= new HashMap<String,String>();
+		Connection newcon = this.getConnection();
+		try {
+				stmt = newcon.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM phimap;");
+				while(rs.next())
+				{
+					PHImap.put(rs.getString("UID"), rs.getString("PHI"));
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
 	}
 	public static final String SUBJECTID="subjectid";
 	public static final String FAKEPHIDATA="fakephidata";
@@ -242,40 +267,46 @@ public class DBManager extends Thread{
 	public void getCheckOutInfo(int userid,HashMap<String,String> checkOutMap) throws SQLException
 	{
 		Connection newcon = this.getConnection();
-		if(this.type_of_work==GET_CHECKOUTINFO)
-		{
 			RequestInfo[] newinfo = null;
 			//Find the associated userids
 			try {
-				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
-				rs.last();
-				int rowCount = rs.getRow();
-				rs.first();
-				newinfo=new RequestInfo[rowCount];
+				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
+				if (rs.next())
+				{
+					rs.last();
+					int rowCount = rs.getRow();
+				
+					rs.first();
+					newinfo=new RequestInfo[rowCount];
+					
+				}
 				int i=0;
 				while(rs.next())
 				{		
 					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
 				}
+				if (newinfo!=null)
+				{
+				for(RequestInfo info : newinfo)
+				{
+					int[] checkoutarray=info.getCheckoutinfo();
+					checkOutMap.put("Total_Checkout_By_User",Integer.toString(checkoutarray.length));
+					for (int checkOutId : checkoutarray)
+					{
+						if (!checkOutMap.containsKey(checkOutId))
+						checkOutMap.put(PHImap.get(Integer.toString(checkOutId)), "1");
+					}
+				}
+				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			
-			for(RequestInfo info : newinfo)
-			{
-				int[] checkoutarray=info.getCheckoutinfo();
-				checkOutMap.put("Total_Checkout_By_User",Integer.toString(checkoutarray.length));
-				for (int checkOutId : checkoutarray)
-				{
-					if (!checkOutMap.containsKey(checkOutId))
-					checkOutMap.put(Integer.toString(checkOutId), "1");
-				}
-			}
+
 			
 			
 			
-			
-		}
+		
 	}
 	public void update_subjectinfo()
 	{
@@ -347,6 +378,8 @@ public class DBManager extends Thread{
 				this.insert_requestinfo();
 				System.out.println("succeed in inserting into requestinfo!!");
 			}
+			break;
+		case SINGLE_THREAD:
 			break;
 			default:
 				System.out.println("WRONG TYPE OF WORK!!!");
