@@ -1,6 +1,8 @@
 package org.ibcb.xnat.redaction.database;
 
 import java.sql.*;
+import java.util.HashMap;
+
 import org.postgresql.jdbc2.optional.PoolingDataSource;
 //import org.postgresql.jdbc4.Jdbc4Connection;
 
@@ -16,6 +18,7 @@ public class DBManager extends Thread{
 	public static final int QUERY_UNITED=4;
 	public static final int UPDATE_REQUESTINFO=5;
 	public static final int UPDATE_SUBJECTINFO=6;
+	public static final int GET_CHECKOUTINFO=7;
 	private int type_of_work;
 	protected Statement stmt;
 	static 
@@ -236,7 +239,61 @@ public class DBManager extends Thread{
 			
 		}
 	}
-
+	public HashMap<String,String> getCheckOutInfo(int userid)
+	{
+		Connection newcon = this.getConnection();
+		if(this.type_of_work==GET_CHECKOUTINFO)
+		{
+			RequestInfo[] newinfo = null;
+			HashMap<String,String> checkOutMap=new HashMap<String,String>();
+			//Find the associated userids
+			try {
+				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
+				rs.last();
+				int rowCount = rs.getRow();
+				rs.first();
+				newinfo=new RequestInfo[rowCount];
+				int i=0;
+				while(rs.next())
+				{		
+					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+			for(RequestInfo info : newinfo)
+			{
+				int[] checkoutarray=info.getCheckoutinfo();
+				checkOutMap.put("Total_Checkout_By_User",Integer.toString(checkoutarray.length));
+				for (int checkOutId : checkoutarray)
+				{
+					if (!checkOutMap.containsKey(checkOutId))
+					checkOutMap.put(Integer.toString(checkOutId), "1");
+				}
+			}
+			//Get the name of checkout fields
+			try {
+				/*ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
+				rs.last();
+				int rowCount = rs.getRow();
+				rs.first();
+				RequestInfo[] newinfo=new RequestInfo[rowCount];
+				int i=0;
+				while(rs.next())
+				{		
+					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
+				}*/
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+			
+			
+			
+		}
+		return null;
+	}
 	public void update_subjectinfo()
 	{
 		Connection newcon = this.getConnection();
