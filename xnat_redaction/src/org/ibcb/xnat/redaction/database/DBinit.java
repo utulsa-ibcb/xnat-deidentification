@@ -28,7 +28,7 @@ public class DBinit {
 		  Connection connection = null;
 	 
 		  try {
-	 
+			  
 			 connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/privacydb","xnat", "xnat");
 	 
 		  } catch (SQLException e) {

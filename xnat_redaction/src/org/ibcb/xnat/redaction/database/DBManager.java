@@ -114,6 +114,28 @@ public class DBManager extends Thread{
 		return con;
 	}
 
+	public int[] findSameSubjects(String subjectId)
+	{
+		int[] sameSubjects=null;
+		Connection newcon=this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			
+			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+subjectId+"\';");
+			while (rs.next())
+			{
+				//get the whole phi data
+				String phidata=rs.getString("phidata");
+				// get name and dob
+				
+			}
+		
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return sameSubjects;
+	}
 	
 	public void insert_requestinfo()
 	{
@@ -184,7 +206,7 @@ public class DBManager extends Thread{
 			
 		}
 	}
-	public RequestInfo[] query_requestinfo(int userid)
+	public RequestInfo[] query_requestinfo(String userid)
 	{
 		Connection newcon = this.getConnection();
 		
@@ -193,7 +215,7 @@ public class DBManager extends Thread{
 			try {
 				stmt = newcon.createStatement();
 				
-				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid="+userid+";");
+				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
 				rs.last();
 				int rowCount = rs.getRow();
 				rs.first();
@@ -264,7 +286,7 @@ public class DBManager extends Thread{
 			
 		}
 	}
-	public void getCheckOutInfo(int userid,HashMap<String,String> checkOutMap) throws SQLException
+	public void getCheckOutInfo(String userid,HashMap<String,String> checkOutMap) throws SQLException
 	{
 		Connection newcon = this.getConnection();
 			RequestInfo[] newinfo = null;

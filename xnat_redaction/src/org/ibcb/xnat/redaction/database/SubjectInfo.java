@@ -33,25 +33,35 @@ public class SubjectInfo {
 		
 	}
 	public void setphidata(HashMap<String,String> phimap) {
-		if (phimap.isEmpty()) this.phidata="";
+			this.phidata=transphiData(phimap);
+	}
+	public static String transphiData(HashMap<String,String> phimap)
+	{
+		String phidata;
+		if (phimap.isEmpty()) phidata="";
 		else
 		{
-			this.phidata="";
+			phidata="";
 			Set<String> keyset=phimap.keySet();
 			for (String key :keyset)
 			{				
 				//encode the hashmap into a key,value; string
-				this.phidata=this.phidata+key+","+phimap.get(key)+";";				
+				phidata=phidata+key+","+phimap.get(key)+";";				
 			}
 		}
+		return phidata;
 	}
-	
 	public HashMap<String,String> getphiMap()
 	{
+		return transphiMap(this.phidata);
+	}
+	
+	public static HashMap<String,String> transphiMap(String phidata)
+	{
 		HashMap<String,String> phimap=new HashMap<String,String>();
-		if (this.phidata.length()<1) return null;
-		if (!this.phidata.contains(";")) return null;
-		String[] phipairs=this.phidata.split(";");
+		if (phidata.length()<1) return null;
+		if (!phidata.contains(";")) return null;
+		String[] phipairs=phidata.split(";");
 		for (String pairs : phipairs)
 		{
 			String[] pair=pairs.split(",");
@@ -65,7 +75,6 @@ public class SubjectInfo {
 		}
 			
 		return phimap;
-		
 	}
 	public String getRequestid() {
 		return requestid;
