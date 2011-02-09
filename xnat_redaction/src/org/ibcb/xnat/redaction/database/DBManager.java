@@ -71,7 +71,7 @@ public class DBManager extends Thread{
 		
 	}
 	public static final String SUBJECTID="subjectid";
-	public static final String FAKEPHIDATA="fakephidata";
+	public static final String phidata="phidata";
 	public static final String REQUESTID="requestid";
 	public static final String PROJECTID="projectid";
 	public static final String USERID="userid";
@@ -149,7 +149,7 @@ public class DBManager extends Thread{
 		int result = 0;
 		try {
 				stmt = newcon.createStatement();
-				result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getFakephidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
+				result = stmt.executeUpdate("INSERT INTO subjectinfo VALUES('"+s.getSubjectid()+"','"+s.getphidata()+"','"+s.getRequestid()+"','"+s.getSubjectid()+"');");
 		
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -220,11 +220,11 @@ public class DBManager extends Thread{
 			try {
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo;");
-				System.out.println("subjectid"+"\t"+"fakephidata"+"\t"+"requestid"+"\t"+"projectid");
+				System.out.println("subjectid"+"\t"+"phidata"+"\t"+"requestid"+"\t"+"projectid");
 				while(rs.next())
 				{
 					System.out.print(rs.getString("subjectid")+"\t");
-					System.out.print(rs.getString("fakephidata")+"\t");
+					System.out.print(rs.getString("phidata")+"\t");
 					System.out.print(rs.getString("requestid")+"\t");
 					System.out.print(rs.getString("projectid")+"\t");
 					System.out.println();
@@ -245,11 +245,11 @@ public class DBManager extends Thread{
 			try {
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo sub, requestinfo re where sub.requestid=re.requestid;");
-				System.out.println("subjectid"+"\t"+"fakephidata"+"\t"+"requestid"+"\t"+"projectid\t"+"date\t\t"+"adminid\t\t"+"checkoutinfo\t");
+				System.out.println("subjectid"+"\t"+"phidata"+"\t"+"requestid"+"\t"+"projectid\t"+"date\t\t"+"adminid\t\t"+"checkoutinfo\t");
 				while(rs.next())
 				{
 					System.out.print(rs.getString("subjectid")+"\t");
-					System.out.print(rs.getString("fakephidata")+"\t");
+					System.out.print(rs.getString("phidata")+"\t");
 					System.out.print(rs.getString("requestid")+"\t");
 					System.out.print(rs.getString("projectid")+"\t");
 					System.out.print(rs.getString("date")+"\t");

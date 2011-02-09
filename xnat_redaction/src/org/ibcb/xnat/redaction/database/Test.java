@@ -23,16 +23,17 @@ public class Test {
 		//DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
 		//DBManager db3 = new DBManager(DBManager.QUERY_SUBJECTINFO);
 		//DBManager united = new DBManager(DBManager.QUERY_UNITED);
-		DBManager single=new DBManager(DBManager.SINGLE_THREAD);
+		//DBManager single=new DBManager(DBManager.SINGLE_THREAD);
 		
 		//new Thread(db).run();
 		//new Thread(db1).run();
-		single.getCheckOutInfo(1, new HashMap<String,String>());
+		//single.getCheckOutInfo(1, new HashMap<String,String>());
 		//new Thread(db2).run();
 		//new Thread(db3).run();
 		//new Thread(united).run();
 		
-		
+		DBinit newinit=new DBinit();
+		newinit.setupDB();
 		//DBManager update1 = new DBManager(DBManager.UPDATE_SUBJECTINFO,DBManager.FAKEPHIDATA,"phi_test11",DBManager.PROJECTID,"sub_test1");
 		//new Thread(update1).run();
 		//DBManager update2 = new DBManager(DBManager.UPDATE_REQUESTINFO,DBManager.CHECKOUTINFO,"{update,update,update,update}",DBManager.ADMINID,"adm_test1");
