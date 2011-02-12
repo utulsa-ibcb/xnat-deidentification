@@ -2,6 +2,7 @@ package org.ibcb.xnat.redaction.database;
 
 import java.sql.*;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.postgresql.jdbc2.optional.PoolingDataSource;
 //import org.postgresql.jdbc4.Jdbc4Connection;
@@ -114,9 +115,15 @@ public class DBManager extends Thread{
 		return con;
 	}
 
-	public int[] findSameSubjects(String subjectId)
+	public String[] findSameSubjects(String subjectId)
 	{
-		int[] sameSubjects=null;
+		String[] sameSubjects=null;
+		LinkedList<String> sameSubjectIds=new LinkedList<String>();
+		String PatientName=null;
+		String PatientBirthdate=null;
+		String PatientAge=null;
+		String xnat_dob=null;
+		String xnat_age=null;
 		Connection newcon=this.getConnection();
 		try {
 			stmt = newcon.createStatement();
@@ -127,9 +134,60 @@ public class DBManager extends Thread{
 				//get the whole phi data
 				String phidata=rs.getString("phidata");
 				// get name and dob
-				
+				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
+				if (phidatamap.containsKey("PatientName"))
+				{
+					PatientName=phidatamap.get("PatientName");					
+					if (phidatamap.containsKey("PatientBirthdate"))
+						PatientBirthdate=phidatamap.get("PatientBirthdate");
+					if (phidatamap.containsKey("PatientAge"))
+						PatientAge=phidatamap.get("PatientAge");
+					if (phidatamap.containsKey("xnat:dob"))
+						xnat_dob=phidatamap.get("xnat:dob");
+					if (phidatamap.containsKey("xnat:age"))
+						xnat_age=phidatamap.get("xnat:age");
+					stmt = newcon.createStatement();
+					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'"+PatientName+"\' ;");
+					while (findSame.next())
+					{
+						String tmpPhidata=findSame.getString("phidata");
+						HashMap<String,String> tmpPhidataMap=SubjectInfo.transphiMap(tmpPhidata);
+						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate==tmpPhidataMap.get("PatientBirthdate")))
+							{
+							sameSubjectIds.add(rs.getString("subjectid"));
+							break;
+							}
+						if (phidatamap.containsKey("PatientAge") && (PatientAge==tmpPhidataMap.get("PatientAge")))
+							{
+							sameSubjectIds.add(rs.getString("subjectid"));
+							break;
+							}
+						if (phidatamap.containsKey("xnat:dob") && (xnat_dob==tmpPhidataMap.get("xnat:dob")))
+							{
+							sameSubjectIds.add(rs.getString("subjectid"));
+							break;
+							}
+						if (phidatamap.containsKey("xnat:age") && (xnat_age==tmpPhidataMap.get("xnat:age")))
+							{
+							sameSubjectIds.add(rs.getString("subjectid"));
+							break;
+							}						
+					}
+					sameSubjects=new String[sameSubjects.length];
+					int i=0;
+					for (String id:sameSubjectIds)
+					{
+						sameSubjects[i]=id;
+						i++;
+					}
+					return sameSubjects;
+				}
+				else
+				{
+					return sameSubjects;
+				}
+					
 			}
-		
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -296,8 +354,7 @@ public class DBManager extends Thread{
 				if (rs.next())
 				{
 					rs.last();
-					int rowCount = rs.getRow();
-				
+					int rowCount = rs.getRow();	
 					rs.first();
 					newinfo=new RequestInfo[rowCount];
 					
@@ -307,6 +364,15 @@ public class DBManager extends Thread{
 				{		
 					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("checkoutinfo"));
 				}
+				//LinkedList<String> subjectIds=new LinkedList<String>();
+				for (RequestInfo info:newinfo)
+				{
+					//subjectIds.add(info.get)
+					
+					
+				}
+				
+				
 				if (newinfo!=null)
 				{
 				for(RequestInfo info : newinfo)

@@ -31,7 +31,7 @@ public class Loader {
 		// populate map of checkout fields -Liang
 		HashMap<String, String> requesting_user_data = new HashMap<String, String>();
 		try {
-			db.getCheckOutInfo(Integer.parseInt(co_user_id), requesting_user_data);
+			db.getCheckOutInfo(co_user_id, requesting_user_data);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
