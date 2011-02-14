@@ -8,14 +8,22 @@ public class SubjectInfo {
 	
 	private String subjectid;
 	private String phidata;
-	private String requestid;
+	private String[] requestids;
 	private String projectid;
 	
+	
+	public SubjectInfo(String sub,String phi,String[] req,String proj)
+	{
+		this.subjectid=sub;
+		this.requestids=req;
+		this.projectid=proj;
+		this.phidata=phi;
+	}
 	
 	public SubjectInfo(String sub,String phi,String req,String proj)
 	{
 		this.subjectid=sub;
-		this.requestid=req;
+		this.requestids=requestidParser(req);
 		this.projectid=proj;
 		this.phidata=phi;
 	}
@@ -76,11 +84,15 @@ public class SubjectInfo {
 			
 		return phimap;
 	}
-	public String getRequestid() {
-		return requestid;
+	public String[] getRequestid() {
+		return requestids;
 	}
-	public void setRequestid(String requestid) {
-		this.requestid = requestid;
+	public void setRequestids(String[] requestid) {
+		this.requestids = requestid;
+	}
+	public void setRequestids(String requestids)
+	{
+		this.requestids=requestidParser(requestids);		
 	}
 	public String getProjectid() {
 		return projectid;
@@ -88,6 +100,21 @@ public class SubjectInfo {
 	public void setProjectid(String projectid) {
 		this.projectid = projectid;
 	}
-
-	
+	public String[] requestidParser(String requestid)
+	{
+		//parse all the requestids
+		if (requestid.length()<1) return null;
+		if (!requestid.contains(";")) return null;
+		String[] requestids=requestid.split(";");
+		return requestids;		
+	}
+	public String getRequestidText()
+	{
+		String requestids=null;
+		for (String id:this.requestids)
+		{
+			requestids+=id;			
+		}
+		return requestids;
+	}
 }

@@ -44,7 +44,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "subjectinfo", null).next())
 			  {
 				  System.out.println("Dont have SubjectTable, will create one");
-				  String cmd ="CREATE TABLE subjectinfo(  subjectid character varying(80) NOT NULL,  phidata text,  requestid character varying(80),  projectid character varying(80),  CONSTRAINT subjectprimary PRIMARY KEY (subjectid),  CONSTRAINT requestprimary FOREIGN KEY (requestid)      REFERENCES requestinfo (requestid) MATCH SIMPLE      ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (  OIDS=FALSE);ALTER TABLE subjectinfo OWNER TO xnat;";
+				  String cmd ="CREATE TABLE subjectinfo(subjectid character varying(80) NOT NULL, phidata text, projectid character varying(80), requestids text, CONSTRAINT subjectprimary PRIMARY KEY (subjectid)) WITH (OIDS=FALSE); ALTER TABLE subjectinfo OWNER TO xnat;";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -59,7 +59,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "requestinfo", null).next())
 			  {
 				  System.out.println("Dont have requestinfo, will create one");
-				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  adminid character varying(80),checkoutinfo integer[],  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
+				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  adminid character varying(80), affectedsubjects text,,  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)

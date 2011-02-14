@@ -26,7 +26,7 @@ public class Loader {
 		// download project and subject ids
 		
 		// download checkout user information from our database -Liang
-		DBManager db=new DBManager(DBManager.SINGLE_THREAD);
+		/*DBManager db=new DBManager(DBManager.SINGLE_THREAD);
 		
 		// populate map of checkout fields -Liang
 		HashMap<String, String> requesting_user_data = new HashMap<String, String>();
@@ -42,7 +42,7 @@ public class Loader {
 		
 		// run permissions checks against checkout ruleset information
 		boolean passed = cr.filter(requesting_user_data);
-		
+		*/
 		// if passed, download remainder of project information
 		
 			// redact XNATSubject demographics
