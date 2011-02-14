@@ -26,12 +26,12 @@ public class Loader {
 		// download project and subject ids
 		
 		// download checkout user information from our database -Liang
-		/*DBManager db=new DBManager(DBManager.SINGLE_THREAD);
+		DBManager db=new DBManager(DBManager.SINGLE_THREAD);
 		
 		// populate map of checkout fields -Liang
-		HashMap<String, String> requesting_user_data = new HashMap<String, String>();
+		HashMap<String, HashMap<String,String>> requesting_user_data = new HashMap<String, HashMap<String,String>>();
 		try {
-			db.getCheckOutInfo(co_user_id, requesting_user_data);
+			requesting_user_data=db.getUserCheckOutInfo(co_user_id);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -41,8 +41,9 @@ public class Loader {
 		}
 		
 		// run permissions checks against checkout ruleset information
-		boolean passed = cr.filter(requesting_user_data);
-		*/
+		//we may need some new rules here
+		//boolean passed = cr.filter(requesting_user_data);
+
 		// if passed, download remainder of project information
 		
 			// redact XNATSubject demographics
