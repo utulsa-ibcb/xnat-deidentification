@@ -4,8 +4,7 @@ import java.sql.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
-
-import org.postgresql.jdbc2.optional.PoolingDataSource;
+import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
 //import org.postgresql.jdbc4.Jdbc4Connection;
 
 //import java.sql.;
@@ -13,23 +12,17 @@ import org.postgresql.jdbc2.optional.PoolingDataSource;
 public class DBManager extends Thread{
 
 
-	private static PoolingDataSource datasource;
+	private static Jdbc3PoolingDataSource datasource;
 	private static HashMap<String,String> PHImap;
-	private Object data;
 	public static final int SINGLE_THREAD=0;
 	public static final int INSERT_REQUESTINFO=1;
 	public static final int INSERT_SUBJECTINFO=2;
-	public static final int QUERY_REQUESTINFO=3;
-	public static final int QUERY_SUBJECTINFO=4;
-	public static final int QUERY_UNITED=5;
-	public static final int UPDATE_REQUESTINFO=6;
-	public static final int UPDATE_SUBJECTINFO=7;
-	public static final int GET_CHECKOUTINFO=8;
-	private int type_of_work;
+	public static final int UPDATE_SUBJECTINFO=3;
+	public int type_of_work=0;
 	protected Statement stmt;
 	static 
 	{
-		datasource=new PoolingDataSource();   //Use pooling data source to provide connection pool
+		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
 		datasource.setDataSourceName("A Pooling Source");
 		datasource.setServerName("localhost");
 		datasource.setDatabaseName("PrivacyDB");
@@ -37,18 +30,6 @@ public class DBManager extends Thread{
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 		
-	}
-	public DBManager(SubjectInfo s,int type_of_work)
-	{
-		data=s;
-		this.type_of_work=type_of_work;
-		Initializer();
-	}
-	public DBManager(RequestInfo r,int type_of_work)
-	{
-		data=r;
-		this.type_of_work=type_of_work;
-		Initializer();
 	}
 	public DBManager(int type_of_work)
 	{
@@ -59,7 +40,13 @@ public class DBManager extends Thread{
 	{
 		//init the phi map
 		PHImap= new HashMap<String,String>();
-		Connection newcon = this.getConnection();
+		Connection newcon = null;
+		try {
+			newcon = datasource.getConnection();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try {
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM phimap;");
@@ -70,9 +57,7 @@ public class DBManager extends Thread{
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-		
-		
+			}	
 	}
 	protected Connection getConnection()
 
@@ -197,7 +182,13 @@ public class DBManager extends Thread{
 	}
 	public void updateSubjectCheckOutInfo(String subjectid,HashMap<String,String> checkoutMap)
 	{
-		Connection newcon = this.getConnection();
+		Connection newcon = null;
+		try {
+			newcon = datasource.getConnection();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try {
 			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
 			while (rs.next())
@@ -218,7 +209,13 @@ public class DBManager extends Thread{
 	
 	public HashMap<String,HashMap<String,String>> getUserCheckOutInfo(String userid) throws SQLException
 	{
-		Connection newcon = this.getConnection();
+		Connection newcon = null;
+		try {
+			newcon = datasource.getConnection();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
 		RequestInfo[] newinfo = null;
 			//Find the associated userids
@@ -266,22 +263,17 @@ public class DBManager extends Thread{
 			}
 			return null;	
 }
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-
-		switch(this.type_of_work)
-		{
-		case SINGLE_THREAD:
-			break;
-			default:
-				System.out.println("WRONG TYPE OF WORK!!!");
-				break;
-			
-		}
+	public void insertSubjectInfo()
+	{
 		
 	}
-	
+	public void insertRequestInfo()
+	{
+		
+	}
+	public void updateSubjectInfo()
+	{
+		
+	}
 
 }
