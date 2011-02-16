@@ -30,6 +30,9 @@ public class DICOMExtractor extends RedactionPipelineService{
 	static DICOMExtractor singleton = null;
 	DICOMSchema schema;
 	
+	public DICOMSchema getSchema(){
+		return schema;
+	}
 	
 	public DICOMExtractor(){
 		schema = null;
@@ -132,7 +135,7 @@ public class DICOMExtractor extends RedactionPipelineService{
 		return dcmObj;
 	}
 	
-	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj, RedactionRuleset rules){
+	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj, RedactionRuleset rules, List<String> request_fields){
 
 		SpecificCharacterSet scs = new SpecificCharacterSet("latin1"); 
 		
@@ -155,7 +158,7 @@ public class DICOMExtractor extends RedactionPipelineService{
 					String value = e.getValueAsString(scs, 100);			
 					dicomPairs.put(field, value);
 					
-					if(redact){
+					if(redact && !request_fields.contains(field)){
 						redacted.add(tag);
 					}
 					
@@ -189,10 +192,13 @@ public class DICOMExtractor extends RedactionPipelineService{
 			System.exit(1);
 		}
 		
-		String input = "/opt/xnat_deidentification/xnat_redaction/data/BRAINIX/IRM/T2W-FE-EPI - 501/IM-0001-0001.dcm";
+		LinkedList<String> req_fields = new LinkedList<String>();
+		req_fields.add("PatientName");
+		
+		String input = "./data/BRAINIX/IRM/T2W-FE-EPI - 501/IM-0001-0001.dcm";
 		DicomObject obj = de.loadDicom(input);
 		
-		HashMap<String,String> hs = de.extractNameValuePairs(obj, rules);
+		HashMap<String,String> hs = de.extractNameValuePairs(obj, rules, req_fields);
 		System.out.println("+-------+");
 		System.out.println("| Pre:  |");
 		System.out.println("+-------+");
@@ -206,7 +212,7 @@ public class DICOMExtractor extends RedactionPipelineService{
 		
 		DicomObject obj2_test = de.loadDicom(nfilename);
 		
-		hs = de.extractNameValuePairs(obj2_test, rules);
+		hs = de.extractNameValuePairs(obj2_test, rules, req_fields);
 		System.out.println("+-------+");
 		System.out.println("| Post: |");
 		System.out.println("+-------+");

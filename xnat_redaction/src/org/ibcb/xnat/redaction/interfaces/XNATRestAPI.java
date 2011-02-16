@@ -1,13 +1,37 @@
 package org.ibcb.xnat.redaction.interfaces;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.rmi.ConnectException;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.dcm4che2.data.DicomObject;
+import org.ibcb.xnat.redaction.DICOMExtractor;
 import org.ibcb.xnat.redaction.XNATExtractor;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.RedactionRuleset;
@@ -31,12 +55,13 @@ public class XNATRestAPI {
 	
 	// /REST/projects/PROJECT_ID/files
 	static XNATRestAPI instance = null;
+	final static int retry_count = 3;
 	
 	boolean enable_auth=true;
 	
 	String url="http://central.xnat.org";
-	String user="mkmatlock";
-	String pass="Z38l!v35";
+	String user;
+	String pass;
 	
 	public static XNATRestAPI instance(){
 		if(instance==null)instance=new XNATRestAPI();
@@ -44,8 +69,8 @@ public class XNATRestAPI {
 	}
 	
 	public XNATRestAPI(){
-		
-		
+		user=Configuration.instance().getProperty("xnat_user");
+		pass=Configuration.instance().getProperty("xnat_pass");
 	}
 	
 	public void printInputStream(InputStream stream) throws IOException{
@@ -59,28 +84,270 @@ public class XNATRestAPI {
 		}
 	}
 	
-	public DOMParser queryREST(String query) throws IOException, SAXException{
-		System.out.println("Querying: " + query);
-		HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
-		con.setRequestMethod("GET");
-		
-		BASE64Encoder enc = new BASE64Encoder();
-		String userpass = user+":"+pass;
-		String encoded = enc.encode(userpass.getBytes());
-		con.addRequestProperty("Authorization", "Basic "+encoded);
-		
-		InputStream stuff = con.getInputStream();
-		
-		DOMParser parse = new DOMParser();
-		parse.parse(new InputSource(stuff));
-		return parse;
+	public void downloadREST(String query, String location) throws IOException{
+		int tries=0;
+		while((tries++)<retry_count){
+			try{
+				System.out.println("Downloading: " + query);
+				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+				con.setRequestMethod("GET");
+				
+				BASE64Encoder enc = new BASE64Encoder();
+				String userpass = user+":"+pass;
+				String encoded = enc.encode(userpass.getBytes());
+				con.addRequestProperty("Authorization", "Basic "+encoded);
+				
+				InputStream stuff = con.getInputStream();
+				
+				byte[] buffer = new byte[1024];
+				
+				FileOutputStream fos = new FileOutputStream(location);
+				
+				int count;
+				while( (count = stuff.read(buffer,0,1024)) >= 0){
+					fos.write(buffer,0,count);
+				}
+				
+				fos.close();
+				stuff.close();
+				
+				return;
+			}catch(ConnectException ce){
+				ce.printStackTrace();
+				//retry
+			}
+		}
+		throw new IOException("Unable to connect to host: " + query);
 	}
 	
-	public void retrieveFilePaths(XNATSubject subject){
-		
+	public String DOMtoXML(DOMParser xml) throws TransformerException {
+        /////////////////
+        //Output the XML
+
+        //set up a transformer
+        TransformerFactory transfac = TransformerFactory.newInstance();
+        Transformer trans = transfac.newTransformer();
+        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        trans.setOutputProperty(OutputKeys.INDENT, "yes");
+
+        //create string from xml tree
+        StringWriter sw = new StringWriter();
+        StreamResult result = new StreamResult(sw);
+        DOMSource source = new DOMSource(xml.getDocument());
+        trans.transform(source, result);
+        return sw.toString();
 	}
 	
-	public XNATSubject retrieveSubject(XNATProject project, String subject_id){
+	public String postSubject(XNATProject project){
+		String query = url+"/REST/projects/"+project.id+"/subjects";
+		try{
+			return postREST(query, "");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public boolean putSubject(XNATProject project, XNATSubject subject){
+		String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id;
+		try{
+			String content = subject.extractXML(project.id);
+			System.out.println("PUTting: \n" + content);
+			putREST(query, content);
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean putUser(XNATProject project, String user_id){
+		String query = url+"/REST/projects/"+project.id+"/users/Members/"+user_id;
+		try{
+			putREST(query, "");
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public String postScan(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
+		String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id+"/experiments/"+experiment.destination_id+"/scans";
+		try{
+			String scan_xml = scan.extractXML(project.id, subject.destination_id, experiment.destination_id);
+			
+			System.out.println("POSTing: " + scan_xml);
+			
+			return postREST(query, scan_xml);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String postExperiment(XNATProject project, XNATSubject subject, XNATExperiment experiment){
+		String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id+"/experiments?activate=true&quarantine=false&triggerPipelines=false";
+		try{
+			return postREST(query, experiment.extractXML(project.id, subject.destination_id));
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public boolean putExperiment(XNATProject project, XNATSubject subject, XNATExperiment experiment){
+		String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id+"/experiments/"+experiment.destination_id;
+		try{
+			String content = experiment.extractXML(project.id, subject.destination_id);
+			System.out.println("PUTting: \n" + content);
+			putREST(query, content);
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public String convertStreamToString(InputStream is)
+    throws IOException {
+		/*
+		 * To convert the InputStream to String we use the
+		 * Reader.read(char[] buffer) method. We iterate until the
+		 * Reader return -1 which means there's no more data to
+		 * read. We use the StringWriter class to produce the string.
+		 */
+		if (is != null) {
+		    Writer writer = new StringWriter();
+		
+		    char[] buffer = new char[1024];
+		    try {
+		        Reader reader = new BufferedReader(
+		                new InputStreamReader(is, "UTF-8"));
+		        int n;
+		        while ((n = reader.read(buffer)) != -1) {
+		            writer.write(buffer, 0, n);
+		        }
+		    } finally {
+		        is.close();
+		    }
+		    return writer.toString();
+		} else {        
+		    return "";
+		}
+	}
+
+	
+	public String postREST(String query, String content) throws IOException, SAXException, ConnectException, TransformerException{
+		int tries=0;
+		while((tries++)<retry_count){
+			try{
+				System.out.println("POSTing: " + query);
+				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+				con.setRequestMethod("POST");
+				con.setDoOutput(true);
+				
+				
+				BASE64Encoder enc = new BASE64Encoder();
+				String userpass = user+":"+pass;
+				String encoded = enc.encode(userpass.getBytes());
+				con.addRequestProperty("Authorization", "Basic "+encoded);
+				
+				OutputStreamWriter out = new OutputStreamWriter(
+					    con.getOutputStream());
+					out.write(content);
+					out.close();
+				
+//				System.out.println("POST response: "+con.getResponseCode());
+				
+//				System.out.println(con.getResponseMessage());
+				
+				InputStream stuff = con.getInputStream();
+				
+//				DOMParser parse = new DOMParser();
+//				parse.parse(new InputSource(stuff));
+				
+				return convertStreamToString(stuff);
+			}catch(ConnectException ce){
+				ce.printStackTrace();
+				if(tries==retry_count) throw ce;
+			}
+		}
+		return null;
+	}
+	
+	public void putREST(String query, DOMParser xml) throws IOException, SAXException, ConnectException, TransformerException{
+		String xml_string = DOMtoXML(xml);
+		
+		putREST(query, xml_string);
+	}
+	
+	public void putREST(String query, String content) throws IOException, SAXException, ConnectException, TransformerException{
+		int tries=0;
+		while((tries++)<retry_count){
+			try{
+				System.out.println("PUTting: " + query);
+				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+				con.setRequestMethod("PUT");
+				con.setDoOutput(true);
+				
+				BASE64Encoder enc = new BASE64Encoder();
+				String userpass = user+":"+pass;
+				String encoded = enc.encode(userpass.getBytes());
+				con.addRequestProperty("Authorization", "Basic "+encoded);
+				
+				OutputStreamWriter out = new OutputStreamWriter(
+					    con.getOutputStream());
+					out.write(content);
+					out.close();
+
+				System.out.println("Put response: "+con.getResponseCode());
+				
+				System.out.println(con.getResponseMessage());
+					
+//				InputStream stuff = con.getInputStream();
+				
+//				DOMParser parse = new DOMParser();
+//				parse.parse(new InputSource(stuff));
+				
+//				System.out.println(DOMtoXML(parse));
+				
+				break;
+			}catch(ConnectException ce){
+				ce.printStackTrace();
+				if(tries==retry_count) throw ce;
+			}
+		}
+	}
+	
+	public DOMParser queryREST(String query) throws IOException, SAXException, ConnectException{
+		int tries=0;
+		while((tries++)<retry_count){
+			try{
+				System.out.println("GETting: " + query);
+				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+				con.setRequestMethod("GET");
+				
+				BASE64Encoder enc = new BASE64Encoder();
+				String userpass = user+":"+pass;
+				String encoded = enc.encode(userpass.getBytes());
+				con.addRequestProperty("Authorization", "Basic "+encoded);
+				
+				InputStream stuff = con.getInputStream();
+				
+				DOMParser parse = new DOMParser();
+				parse.parse(new InputSource(stuff));
+				return parse;
+			
+			}catch(ConnectException ce){
+				ce.printStackTrace();
+				if(tries==retry_count) throw ce;
+			}
+		}
+		throw new IOException("Unable to connect to host: " + query);
+	}
+	
+	public boolean retrieveSubject(XNATProject project, String subject_id){
 		try{
 			String query = url+"/REST/projects/"+project.id+"/subjects/"+subject_id+"?format=xml";
 			DOMParser parse = queryREST(query);
@@ -92,11 +359,11 @@ public class XNATRestAPI {
 			
 			project.subjects.put(subject_id, subject);
 			
-			return subject;
+			return true;
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		return null;
+		return false;
 	}
 	
 	public void retrieveExperimentIds(XNATProject project){
@@ -119,7 +386,7 @@ public class XNATRestAPI {
 		}
 	}
 	
-	public void retreiveExperiment(XNATProject project, XNATSubject subject, String experiment_id){
+	public void retrieveExperiment(XNATProject project, XNATSubject subject, String experiment_id){
 		try{
 			String query = url+"/REST/projects/"+project.id+"/experiments/"+experiment_id+"?format=xml";
 			DOMParser parse = queryREST(query);
@@ -154,7 +421,7 @@ public class XNATRestAPI {
 		}
 	}
 	
-	public void retrieveExperimentIds(XNATSubject subject, XNATProject project){
+	public void retrieveExperimentIds(XNATProject project, XNATSubject subject){
 		try{
 			String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.id+"/experiments?format=xml";
 			DOMParser parse = queryREST(query);
@@ -195,46 +462,208 @@ public class XNATRestAPI {
 		}
 	}
 	
-	public String downloadDICOMFiles(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
-		// execute wget as external process
+	   /**
+     * The core Business Logic method that extracts a ZIP file maintaining
+     * the folder structure
+     *       
+     * @param zipFileName
+     *      The name of the ZIP file to be extracted
+     *      
+     * @throws IOException
+     *      Problems while extacting the ZIP file
+     */
+    public static void unzip(String zipFileName)  throws IOException
+    {
+        ZipFile zipFile = null;
+        InputStream inputStream = null;
+ 
+        String root_dir = zipFileName.substring(0,zipFileName.lastIndexOf('/')+1);
+        
+        File inputFile = new File(zipFileName);
+        try
+        {
+             // Wrap the input file with a ZipFile to iterate through
+             // its contents
+             zipFile = new ZipFile(inputFile);
+             Enumeration<? extends ZipEntry> oEnum = zipFile.entries();
+             while(oEnum.hasMoreElements())
+             {
+                 ZipEntry zipEntry = oEnum.nextElement();
+               
+               
+                 
+                 if(!zipEntry.isDirectory())
+                 {
+					String location = root_dir+zipEntry.getName();
+					String filename = zipEntry.getName();
+					
+					if(filename.contains("/"))
+						filename = filename.substring(filename.lastIndexOf('/')+1);
+					
+					System.out.println("Destination: " + root_dir+filename);
+					File file = new File(root_dir+filename);
+                	 
+                     inputStream = zipFile.getInputStream(zipEntry);
+                     write(inputStream, file);
+                 }
+             }
+        }
+        catch (IOException ioException)
+        {
+            throw ioException;
+        }
+        finally
+        {
+            // Clean up the I/O
+            try
+            {
+                if (zipFile != null)
+                {
+                    zipFile.close();
+                }
+                if (inputStream != null)
+                {
+                    inputStream.close();
+                }
+            }
+            catch(IOException problemsDuringClose)
+            {
+                System.out.println("Problems during cleaning up the I/O.");
+            }
+        }
+    }
+ 
+    /**
+     * Writes to the supplied file with the contents read from the supplied input stream.
+     * 
+     * @param inputStream
+     *      The Source input stream from where the contents will be read to write to the file.
+     *      
+     * @param fileToWrite
+     *      The file to which the contents from the input stream will be written to.
+     *      
+     * @throws IOException
+     *      Any problems while reading from the input stream or writing to the file.
+     */
+    public static void write(InputStream inputStream, File fileToWrite) throws IOException
+    {        
+            BufferedInputStream buffInputStream = new BufferedInputStream( inputStream );
+            FileOutputStream fos = new FileOutputStream( fileToWrite );
+            BufferedOutputStream bos = new BufferedOutputStream( fos );
+ 
+            // write bytes
+            int byteData;
+            while( ( byteData = buffInputStream.read() ) != -1 )
+            {
+                 bos.write( (byte) byteData);
+            }
+ 
+            // close all the open streams
+            bos.close();
+            fos.close();
+            buffInputStream.close();
+    }
+    
+    public void postFile(String url, String filename)throws MalformedURLException, IOException{
+
+		BufferedInputStream bis = null;
+		BufferedOutputStream bos = null;
+		try {
+			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+			con.setRequestMethod("PUT");
+			con.setDoOutput(true);
+			
+			BASE64Encoder enc = new BASE64Encoder();
+			String userpass = user+":"+pass;
+			String encoded = enc.encode(userpass.getBytes());
+			con.addRequestProperty("Authorization", "Basic "+encoded);
+
+			bos = new BufferedOutputStream(con.getOutputStream());
+			bis = new BufferedInputStream(new FileInputStream(filename));
+
+			int i;
+			// read byte by byte until end of stream
+			while ((i = bis.read()) != -1) {
+				bos.write(i);
+			}
+			
+			System.out.println("Server Response: " + con.getResponseCode() + " -- " + con.getResponseMessage());
+		} catch(Exception e){
+			e.printStackTrace();
+		}finally {
+			if (bis != null)
+				try {
+					bis.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			if (bos != null)
+				try {
+					bos.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+		}
+    }
+
+    
+    public void uploadDICOMFiles(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
+    	
+    	for(String localFile : scan.localFiles){
+    		String destination = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id+"/experiments/"+experiment.destination_id+"/scans/"+scan.destination_id+"/files/"+localFile+"?inbody=true";
+    		String filename = scan.tmp_folder + "/" + localFile;
+    		try{
+    			System.out.println("POSTing: " + localFile + " to: " + destination);
+    			postFile(destination, filename);
+    			
+    		}catch(MalformedURLException me){
+    			me.printStackTrace();
+    		}catch(IOException ioe){
+    			ioe.printStackTrace();
+    		}
+    	}
+    }
+
+	
+	public boolean downloadDICOMFiles(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
+		
 		String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.id+"/experiments/"+experiment.id+"/scans/"+scan.id+"/resources/DICOM/files?format=zip";
-		String tmp_folder = Configuration.instance().getProperty("tmp_directory")+"projects/"+project.id+"/subjects/"+subject.id+"/experiments/"+experiment.id+"/scans/"+scan.id;
+		String tmp_folder = Configuration.instance().getProperty("temp_dicom_storage")+"projects/"+project.id+"/subjects/"+subject.id+"/experiments/"+experiment.id+"/scans/"+scan.id;
 		String tmp_location = tmp_folder+"/files.zip";
 		
-		String []mkdir_com = new String[]{"mkdir","-p",tmp_location.substring(0, tmp_location.lastIndexOf("/"))};
-		String []wget_com = new String[]{"wget","--http-user="+user,"--http-password="+pass,"--auth-no-challenge", query, "-O", tmp_location};
-		String []unzip_com = new String[]{"unzip", tmp_location};
+		scan.tmp_folder = tmp_folder;
+		File directory = new File(tmp_folder);
+		
+		directory.mkdirs();
 		
 		try{
-			Process mkdir_proc = Runtime.getRuntime().exec(mkdir_com);
-			mkdir_proc.waitFor();
-			System.out.println("Mkdir Operation Succeeded");
+			downloadREST(query, tmp_location);
+			System.out.println("ZIP File downloaded to: " + tmp_location);
 		}catch(Exception io){
 			io.printStackTrace();
-			return null;
-		}
-		try{		
-			Process wget_proc = Runtime.getRuntime().exec(wget_com);
-			wget_proc.waitFor();
-			System.out.println("Wget Operation Succeeded");
-		}catch(Exception io){
-			io.printStackTrace();
-			return null;
+			return false;
 		}
 		
 		try{
-			Process unzip_proc = Runtime.getRuntime().exec(unzip_com);
-			unzip_proc.waitFor();
-			System.out.println("Unzip Operation Succeeded");
+			XNATRestAPI.unzip(tmp_location);
 		}catch(Exception io){
 			io.printStackTrace();
-			return null;
+			return false;
 		}
 		
-		return tmp_folder;
+		for(File file : directory.listFiles()){
+			if(file.getName().equals("files.zip")){
+				file.delete();
+			}
+			else{
+				scan.localFiles.add(file.getName());
+			}
+		}
+		
+		return true;
 	}
 	
-	public void getScanXML(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
+	private void retrieveScanXML(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
 		try{
 			String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.id+"/experiments/"+experiment.id+"/scans/"+scan.id+"?format=xml";
 			
@@ -247,7 +676,7 @@ public class XNATRestAPI {
 		}
 	}
 	
-	public void getScanIds(XNATProject project, XNATSubject subject, XNATExperiment experiment){
+	public void retrieveScans(XNATProject project, XNATSubject subject, XNATExperiment experiment){
 		try{
 			String query = url+"/REST/projects/"+project.id+"/subjects/"+subject.id+"/experiments/"+experiment.id+"/scans?format=xml";
 			
@@ -256,30 +685,29 @@ public class XNATRestAPI {
 			
 			for(XNATResultSet.Row r : rs.getRows()){
 				XNATScan s = new XNATScan();
-				
 				s.id = r.getValue("ID");
+				s.experiment=experiment;
 				
+				retrieveScanXML(project,subject,experiment,s);
+				
+				if(!subject.scan_ids.containsKey(experiment.id))
+					subject.scan_ids.put(experiment.id, new LinkedList<String>());
+				subject.scan_ids.get(experiment.id).add(s.id);
+				subject.scans.put(s.id, s);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	public void downloadDICOMFiles(XNATSubject subject, XNATExperiment experiment, XNATScan scan){
-		
-	}
-	
 	// /REST/projects/PROJECT_ID
-	public XNATProject getProjectXML(String project_id){
+	public boolean retreiveProject(XNATProject project){
 		try{
-			String query = url+"/REST/projects/"+project_id+"?format=xml";
+			String query = url+"/REST/projects/"+project.id+"?format=xml";
 			
 			DOMParser parse = queryREST(query);
 			
 			Node proj_node = parse.getDocument().getElementsByTagName("xnat:Project").item(0);
-			
-			XNATProject project = new XNATProject();
-			project.id = project_id;
 			
 //			System.out.println("Nodes: " + proj_node.getChildNodes().getLength());
 			for(int s = 0; s < proj_node.getChildNodes().getLength(); s++){
@@ -299,20 +727,67 @@ public class XNATRestAPI {
 			
 			System.out.println(project.toString());
 			
-			return project;
+			return true;
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 		
-		return null;
+		return false;
 	}
 	
 	// /REST/projects/PROJECT_ID/subject/SUBJECT_ID/files	
 	
-	public static void main(String args[])throws PipelineServiceException{
+	public static void main(String args[])throws PipelineServiceException, TransformerException{
+		
 		XNATRestAPI api = XNATRestAPI.instance();
 
-		XNATProject project = api.getProjectXML("NCIGT_PROSTATE");
+		XNATProject project = new XNATProject();
+		project.id="NCIGT_PROSTATE";
+		
+		XNATProject destination = new XNATProject();
+		destination.id="Redaction_Test";
+		
+		api.retreiveProject(project); 
+		
+		api.retrieveSubjectIds(project);
+		api.retrieveSubject(project, project.subject_ids.get(0));		
+		
+		XNATSubject subject = project.subjects.get(project.subject_ids.get(0));
+		
+		api.retrieveExperimentIds(project);
+		api.retrieveExperimentIds(project, subject);
+		
+		api.retrieveExperiment(project, subject, subject.experiment_ids.get(0));
+		
+		XNATExperiment experiment = project.experiments.get(subject.experiment_ids.get(0));
+		
+		api.retrieveScans(project, subject, experiment);
+		XNATScan scan = subject.scans.get(subject.scan_ids.get(experiment.id).get(0));
+		
+		api.downloadDICOMFiles(project, subject, experiment, scan);
+		
+		
+		
+//		System.out.println(api.DOMtoXML(experiment.xml));
+		
+//		System.out.println(experiment.extractXML(destination.id, subject.destination_id));
+		
+//		System.out.println(scan.extractXML(destination.id, subject.destination_id, experiment.destination_id));
+		
+		String response = api.postSubject(destination);
+		subject.destination_id = response.substring(response.lastIndexOf('/')+1);
+		
+		api.putSubject(destination, subject);
+		
+		response = api.postExperiment(destination, subject, experiment);
+		experiment.destination_id = response.substring(response.lastIndexOf('/')+1);
+		
+		response = api.postScan(destination, subject, experiment, scan);
+		scan.destination_id = response.substring(response.lastIndexOf('/')+1);
+	
+		api.uploadDICOMFiles(destination, subject, experiment, scan);
+		
+		/*
 		
 		api.retrieveSubjectIds(project);
 		api.retrieveExperimentIds(project);
@@ -346,8 +821,63 @@ public class XNATRestAPI {
 		}
 		
 		
-		api.retreiveExperiment(project, project.experiment_ids.get(0));
+		api.retrieveExperimentIds(project, sub);
 		
-		project.experiments.get(project.experiment_ids.get(0)).extractFiles();
+		api.retrieveExperiment(project, sub, sub.experiment_ids.get(0));
+		
+		XNATExperiment experiment = project.experiments.get(sub.experiment_ids.get(0));
+		
+		api.retrieveScans(project, sub, experiment);
+		
+		XNATScan scan = sub.scans.get(sub.scan_ids.get(experiment.id).get(0));
+		
+		if(api.downloadDICOMFiles(project, sub, experiment, scan)){
+			System.out.println("Download Successful");
+			
+			for(String file : scan.localFiles){
+				System.out.println("File Extracted: " + file);
+			}
+			
+			System.out.println("Files in: " + scan.tmp_folder);
+		}
+		else{
+			System.out.println("Download Unsuccessful");
+		}
+		
+		DICOMExtractor de = DICOMExtractor.instance();
+		de.initialize();
+		
+		LinkedList<String> req_fields = new LinkedList<String>();
+		req_fields.add("PatientName");
+		
+		for(String file : scan.localFiles){
+			String input = scan.tmp_folder+"/"+file;
+			
+			DicomObject obj = de.loadDicom(input);
+			
+			HashMap<String,String> hs = de.extractNameValuePairs(obj, rules, req_fields);
+			System.out.println("+-------+");
+			System.out.println("| Pre:  |");
+			System.out.println("+-------+");
+			for(String k : hs.keySet()){
+				System.out.printf("%-20.20s: %s\n", k, hs.get(k));
+			}
+			File dir = new File(scan.tmp_folder+"/redacted");
+			if(!dir.exists()){
+				dir.mkdirs();
+			}
+			String nfilename = scan.tmp_folder+"/redacted/"+file;
+			de.writeDicom(nfilename, obj);
+			
+			DicomObject obj2_test = de.loadDicom(nfilename);
+			
+			hs = de.extractNameValuePairs(obj2_test, rules, req_fields);
+			System.out.println("+-------+");
+			System.out.println("| Post: |");
+			System.out.println("+-------+");
+			for(String k : hs.keySet()){
+				System.out.printf("%-20.20s: %s\n", k, hs.get(k));
+			}
+		}*/
 	}
 }

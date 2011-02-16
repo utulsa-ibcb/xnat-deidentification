@@ -31,6 +31,9 @@ public class XNATExtractor extends RedactionPipelineService{
 	static XNATExtractor singleton = null;
 	XNATSchema schema;
 	
+	public XNATSchema getSchema(){
+		return schema;
+	}
 	
 	public XNATExtractor(){
 		schema = null;
@@ -71,6 +74,25 @@ public class XNATExtractor extends RedactionPipelineService{
 		// notify threads that we are exiting. The Main class will wait for this notification, if the system is shutting down.
 		
 		this.notifyAll();
+	}
+	
+	public void insertData(DOMParser xnat_subject, String field, String value){
+		SpecificCharacterSet scs = new SpecificCharacterSet("latin1"); 
+		
+		HashMap<String,String> demographics = new HashMap<String,String>();
+		
+		Node s_node = xnat_subject.getDocument().getElementsByTagName("xnat:Subject").item(0);
+	
+		for(int i = 0; i < s_node.getChildNodes().getLength(); i++){
+			Node x_node = s_node.getChildNodes().item(i);
+			
+			if(x_node.getLocalName() != null && x_node.getPrefix().equalsIgnoreCase("xnat") && x_node.getLocalName().equalsIgnoreCase("demographics")){
+				Node fieldTag = xnat_subject.getDocument().createElement(field);
+				fieldTag.setPrefix("xnat");
+				fieldTag.setTextContent(value);
+				x_node.appendChild(fieldTag);
+			}
+		}
 	}
 	
 	public HashMap<String, String> extractNameValuePairs(DOMParser xnat_subject, boolean redact, RedactionRuleset rules){
