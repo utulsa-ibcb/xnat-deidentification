@@ -1,0 +1,7 @@
+#!/bin/sh
+#---------------------------------------------------------------------------
+# A custom wrapper script
+# This script just echoes all the arguments that it expects to get
+#---------------------------------------------------------------------------
+
+echo $@

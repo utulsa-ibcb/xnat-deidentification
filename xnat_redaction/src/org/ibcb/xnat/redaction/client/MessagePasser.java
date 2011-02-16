@@ -24,7 +24,7 @@ public class MessagePasser {
         for (int i = 0; i < args.length-1; i += 2) argmap.put(args[i], args[i+1]);
         for (String key : argmap.keySet()) System.out.println(key + " " + argmap.get(key));
 
-        FileReader fr = new FileReader("data/mpassing.config");
+        FileReader fr = new FileReader("/home/mackest/dev/git_repos/xnat-deidentification/xnat_redaction/data/mpassing.config");
         BufferedReader br = new BufferedReader(fr);
         String strLine;
         while ((strLine = br.readLine()) != null) {
@@ -42,6 +42,9 @@ public class MessagePasser {
         String host = argmap.get("-h");
         String from = argmap.get("-f");
         String to = argmap.get("-t");
+        
+        StringUtils.replace(to, "\\", "");
+        StringUtils.replace(from, "\\", "");
 
         HtmlEmail he = new HtmlEmail();
         he.setHostName(host);
