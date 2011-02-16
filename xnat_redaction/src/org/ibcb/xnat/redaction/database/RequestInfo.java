@@ -5,24 +5,24 @@ public class RequestInfo {
 	private String requestid;
 	private String userid;
 	private String date;
-	private int[] checkoutinfo;
 	private String adminid;
+	private String[] affectedsubjects;
 	
-	public RequestInfo(String requestid,String userid,String date,String adminid,int[] checkoutinfo)
+	public RequestInfo(String requestid,String userid,String date,String adminid,String[] subjectids)
 	{
 		this.requestid=requestid;
 		this.userid=userid;
 		this.date=date;
-		this.checkoutinfo=checkoutinfo;
+		this.affectedsubjects=subjectids;
 		this.adminid=adminid;
 	}
-	public RequestInfo(String requestid,String userid,String date,String adminid,String checkoutinfo)
+	public RequestInfo(String requestid,String userid,String date,String adminid,String subjectids)
 	{
 		this.requestid=requestid;
 		this.userid=userid;
 		this.date=date;
-		this.checkoutinfo=ArrayParse(checkoutinfo);
 		this.adminid=adminid;
+		this.affectedsubjects=subjectidParser(subjectids);
 	}
 	public RequestInfo() {
 		// TODO Auto-generated constructor stub
@@ -45,32 +45,42 @@ public class RequestInfo {
 	public void setDate(String date) {
 		this.date = date;
 	}
-	public int[] getCheckoutinfo() {
-		return checkoutinfo;
-	}
-	public void setCheckoutinfo(int[] checkoutinfo) {
-		this.checkoutinfo = checkoutinfo;
-	}
 	public String getAdminid() {
 		return adminid;
 	}
 	public void setAdminid(String adminid) {
 		this.adminid = adminid;
 	}
-	protected int[] ArrayParse(String input)
+	
+	public String[] getaffectedsubjects()
 	{
-		input=input.replace("{", "");
-		input=input.replace("}", "");
-		String[] lines=input.split(",");
-		int[] returnArray=new int[lines.length];
-		for (int i=0;i<lines.length;i++)
-		{
-			returnArray[i]=Integer.parseInt(lines[i]);			
-		}
-		return returnArray;
-		
+		return this.affectedsubjects;		
 	}
-
+	public String getaffectedsubjectstext()
+	{
+		String subjects = null;
+		for (String subject:this.affectedsubjects)
+		{
+			subjects+=subject+";";			
+		}
+		return subjects;
+	}
+	public void setaffectedsubjects(String subjectids)
+	{
+		this.affectedsubjects=subjectidParser(subjectids);
+	}
+	public void setaffectedsubjects(String[] affectedsubjects)
+	{
+		this.affectedsubjects=affectedsubjects;
+	}
+	public String[] subjectidParser(String subjectid)
+	{
+		//parse all the requestids
+		if (subjectid.length()<1) return null;
+		if (!subjectid.contains(";")) return null;
+		String[] subjectids=subjectid.split(";");
+		return subjectids;		
+	}
 	
 
 }
