@@ -14,31 +14,15 @@ public class Test {
 	 */
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
-		//SubjectInfo info = new SubjectInfo("sub_test3","phi_test3","req_test3","proj_test3");
-//Problem....
-		
-		//RequestInfo rinfo = new RequestInfo("req_test6","usr_test6","2011-01-23","adm_test6",new int[]{1,2,3,4,5,6});
-		//DBManager db1 = new DBManager(rinfo,DBManager.INSERT_REQUESTINFO);
-		//DBManager db = new DBManager(info,DBManager.INSERT_SUBJECTINFO);
-		//DBManager db2 = new DBManager(DBManager.QUERY_REQUESTINFO);
-		//DBManager db3 = new DBManager(DBManager.QUERY_SUBJECTINFO);
-		//DBManager united = new DBManager(DBManager.QUERY_UNITED);
-		//DBManager single=new DBManager(DBManager.SINGLE_THREAD);
-		
-		//new Thread(db).run();
-		//new Thread(db1).run();
-		//single.getCheckOutInfo(1, new HashMap<String,String>());
-		//new Thread(db2).run();
-		//new Thread(db3).run();
-		//new Thread(united).run();
-		
 		DBinit newinit=new DBinit();
 		newinit.setupDB();
-		//DBManager update1 = new DBManager(DBManager.UPDATE_SUBJECTINFO,DBManager.FAKEPHIDATA,"phi_test11",DBManager.PROJECTID,"sub_test1");
-		//new Thread(update1).run();
-		//DBManager update2 = new DBManager(DBManager.UPDATE_REQUESTINFO,DBManager.CHECKOUTINFO,"{update,update,update,update}",DBManager.ADMINID,"adm_test1");
-			
-		//new Thread(update2).run();
+		DBManager singlethreadtest=new DBManager(DBManager.SINGLE_THREAD);
+		System.out.println("try to insert subject info record");
+		SubjectInfo sinfo=new SubjectInfo("test001","PatientName,Liang;PatientAge,99;StudyDate,10/20/10;","testproject","testrequest001;");
+		singlethreadtest.insertSubjectInfo(sinfo);
+		System.out.println("try to insert request info record");
+		RequestInfo rinfo=new RequestInfo("testrequest1","testuser1","2011-1-23","admin","test001;");
+		singlethreadtest.insertRequestInfo(rinfo);
 	}
 
 }

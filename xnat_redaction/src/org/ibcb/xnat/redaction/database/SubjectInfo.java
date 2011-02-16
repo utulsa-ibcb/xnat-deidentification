@@ -13,7 +13,7 @@ public class SubjectInfo {
 	private String projectid;
 	
 	
-	public SubjectInfo(String sub,String phi,String[] req,String proj)
+	public SubjectInfo(String sub,String phi,String proj,String[] req)
 	{
 		this.subjectid=sub;
 		this.requestids=req;
@@ -21,7 +21,7 @@ public class SubjectInfo {
 		this.phidata=phi;
 	}
 	
-	public SubjectInfo(String sub,String phi,String req,String proj)
+	public SubjectInfo(String sub,String phi,String proj,String req)
 	{
 		this.subjectid=sub;
 		this.requestids=requestidParser(req);
@@ -111,7 +111,7 @@ public class SubjectInfo {
 	}
 	public String getRequestidText()
 	{
-		String requestids=null;
+		String requestids="";
 		for (String id:this.requestids)
 		{
 			requestids+=id+";";			

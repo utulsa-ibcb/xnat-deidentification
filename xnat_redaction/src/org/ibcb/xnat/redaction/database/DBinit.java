@@ -18,7 +18,7 @@ public class DBinit {
 		    Class.forName("org.postgresql.Driver");
 	 
 		  } catch (ClassNotFoundException e) {
-		    System.out.println("Where is your PostgreSQL JDBC Driver? Include in your library path!");
+		    System.out.println("Can't find PostgreSQL JDBC Driver? Please include it in library path!");
 		    e.printStackTrace();
 		    return;
 		  }
@@ -29,7 +29,7 @@ public class DBinit {
 	 
 		  try {
 			  
-			 connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/privacydb","xnat", "xnat");
+			 connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/PrivacyDB","xnat", "xnat");
 	 
 		  } catch (SQLException e) {
 		    System.out.println("Connection Failed! Check output console");
@@ -59,7 +59,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "requestinfo", null).next())
 			  {
 				  System.out.println("Dont have requestinfo, will create one");
-				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  adminid character varying(80), affectedsubjects text,,  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
+				  String cmd ="CREATE TABLE requestinfo(  requestid character varying(80) NOT NULL,  userid character varying(80),  date date,  adminid character varying(80), affectedsubjects text,  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO xnat;";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)

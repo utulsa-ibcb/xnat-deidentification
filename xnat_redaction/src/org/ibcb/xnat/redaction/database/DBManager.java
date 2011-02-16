@@ -280,15 +280,17 @@ public class DBManager extends Thread{
 			//Check if the subject is already exist
 			if (rs.next())
 			{
-				if (!rs.getBigDecimal("count").equals(0))
+				if (!(rs.getBigDecimal("count").intValue()==0))
 				{
 					//use update instead
+					System.out.println("subject record already exist will update it");
 					updateSubjectInfo(sinfo);
 				}
 				else
 				{
+					System.out.println("subject record not found will insert it");
 					stmt = newcon.createStatement();
-					stmt.executeQuery("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\');");
+					stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\');");
 				}
 				
 			}
@@ -302,9 +304,17 @@ public class DBManager extends Thread{
 	{		
 		Connection newcon = this.getConnection();
 		try {
-		stmt = newcon.createStatement();
-		ResultSet rs = stmt.executeQuery("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\');");
-		newcon.close();			
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM requestinfo WHERE requestid=\'"+rinfo.getRequestid()+"\';");
+			if (rs.next())
+			{
+				if (rs.getBigDecimal("count").intValue()==0)
+				{
+					stmt = newcon.createStatement();
+					stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\');");
+				}
+			}
+			newcon.close();			
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -322,11 +332,12 @@ public class DBManager extends Thread{
 			if (rs.next())
 			{
 				oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+				sinfo.merge(oldsinfo);
 			}
 			rs.close();			
-			oldsinfo.merge(sinfo);
+			
 			stmt = newcon.createStatement();
-			stmt.executeQuery("UPDATE subjectinfo SET phidata=\'"+oldsinfo.getphidata()+"\', requestids=\'"+oldsinfo.getRequestidText()+"\' WHERE subjectid=\'"+oldsinfo.getSubjectid()+"\';");
+			stmt.execute("UPDATE subjectinfo SET phidata=\'"+sinfo.getphidata()+"\', requestids=\'"+sinfo.getRequestidText()+"\' WHERE subjectid=\'"+sinfo.getSubjectid()+"\';");
 			newcon.close();			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

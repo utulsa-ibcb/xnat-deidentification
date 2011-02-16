@@ -58,10 +58,10 @@ public class RequestInfo {
 	}
 	public String getaffectedsubjectstext()
 	{
-		String subjects = null;
+		String subjects = "";
 		for (String subject:this.affectedsubjects)
 		{
-			subjects+=subject+";";			
+			subjects=subjects+subject+";";			
 		}
 		return subjects;
 	}
