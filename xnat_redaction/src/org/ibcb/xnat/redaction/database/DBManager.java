@@ -43,11 +43,6 @@ public class DBManager extends Thread{
 		Connection newcon = null;
 		try {
 			newcon = datasource.getConnection();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM phimap;");
 				while(rs.next())
@@ -89,8 +84,7 @@ public class DBManager extends Thread{
 		String xnat_age=null;
 		Connection newcon=this.getConnection();
 		try {
-			stmt = newcon.createStatement();
-			
+			stmt = newcon.createStatement();	
 			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+subjectId+"\';");
 			while (rs.next())
 			{
@@ -143,10 +137,12 @@ public class DBManager extends Thread{
 						sameSubjects[i]=id;
 						i++;
 					}
+					newcon.close();
 					return sameSubjects;
 				}
 				else
 				{
+					newcon.close();
 					return sameSubjects;
 				}
 					
@@ -154,7 +150,12 @@ public class DBManager extends Thread{
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+		try {
+			newcon.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return sameSubjects;
 	}
 	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid)
@@ -162,6 +163,7 @@ public class DBManager extends Thread{
 		Connection newcon = this.getConnection();
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
+			stmt = newcon.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
 			while (rs.next())
 			{
@@ -172,6 +174,12 @@ public class DBManager extends Thread{
 					checkoutMap.put(key, "1");
 				}
 			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			newcon.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -185,11 +193,7 @@ public class DBManager extends Thread{
 		Connection newcon = null;
 		try {
 			newcon = datasource.getConnection();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
+			stmt = newcon.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
 			while (rs.next())
 			{
@@ -201,25 +205,22 @@ public class DBManager extends Thread{
 					checkoutMap.put(key, "1");
 				}
 			}
+			newcon.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
 	
-	public HashMap<String,HashMap<String,String>> getUserCheckOutInfo(String userid) throws SQLException
+	public HashMap<String,HashMap<String,String>> getUserCheckOutInfo(String userid)
 	{
 		Connection newcon = null;
 		try {
 			newcon = datasource.getConnection();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
-		RequestInfo[] newinfo = null;
+			HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
+			RequestInfo[] newinfo = null;
 			//Find the associated userids
-			try {
+				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
 				if (rs.next())
 				{
@@ -257,22 +258,80 @@ public class DBManager extends Thread{
 						}
 					}
 				}
+				newcon.close();
 				return checkoutinfo;
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+			try {
+				newcon.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return null;	
 }
-	public void insertSubjectInfo()
+	public void insertSubjectInfo(SubjectInfo sinfo)
 	{
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM subjectinfo WHERE subjectid=\'"+sinfo.getSubjectid()+"\';");
+			//Check if the subject is already exist
+			if (rs.next())
+			{
+				if (!rs.getBigDecimal("count").equals(0))
+				{
+					//use update instead
+					updateSubjectInfo(sinfo);
+				}
+				else
+				{
+					stmt = newcon.createStatement();
+					stmt.executeQuery("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\');");
+				}
+				
+			}
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void insertRequestInfo(RequestInfo rinfo)
+	{		
+		Connection newcon = this.getConnection();
+		try {
+		stmt = newcon.createStatement();
+		ResultSet rs = stmt.executeQuery("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\');");
+		newcon.close();			
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 		
 	}
-	public void insertRequestInfo()
+	private void updateSubjectInfo(SubjectInfo sinfo)
 	{
-		
-	}
-	public void updateSubjectInfo()
-	{
+		//can be called only by insertSubjectInfo to avoid update a non existing record
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+sinfo.getSubjectid()+"\';");
+			SubjectInfo  oldsinfo=null;
+			if (rs.next())
+			{
+				oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+			}
+			rs.close();			
+			oldsinfo.merge(sinfo);
+			stmt = newcon.createStatement();
+			stmt.executeQuery("UPDATE subjectinfo SET phidata=\'"+oldsinfo.getphidata()+"\', requestids=\'"+oldsinfo.getRequestidText()+"\' WHERE subjectid=\'"+oldsinfo.getSubjectid()+"\';");
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 

@@ -1,6 +1,7 @@
 package org.ibcb.xnat.redaction.database;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
 
 
@@ -113,8 +114,48 @@ public class SubjectInfo {
 		String requestids=null;
 		for (String id:this.requestids)
 		{
-			requestids+=id;			
+			requestids+=id+";";			
 		}
 		return requestids;
+	}
+	public void merge(SubjectInfo oldsinfo)
+	{
+		if (this.subjectid==oldsinfo.subjectid)
+		{
+			//merge the phidata
+			HashMap<String,String> ownHashMap=this.getphiMap();
+			HashMap<String,String> oldHashMap=oldsinfo.getphiMap();
+			for (String key : oldHashMap.keySet())
+			{
+				//Assume the phidata wont change
+				if (!ownHashMap.containsKey(key))
+					ownHashMap.put(key, oldHashMap.get(key));				
+			}
+			this.phidata=transphiData(ownHashMap);
+			//merge the requestids
+			String[] ownRequestIds=this.getRequestid();
+			String[] oldRequestIds=oldsinfo.getRequestid();
+			LinkedList<String> tmp=new LinkedList<String>(); 
+			for (String requestid: ownRequestIds)
+			{				
+				tmp.add(requestid);
+			}
+			for (String requestid : oldRequestIds)
+			{
+				if (!tmp.contains(requestid))
+					tmp.add(requestid);
+			}
+			String[] newrequestIds=new String[tmp.size()];
+			int i=0;
+			for (String requestid:tmp)
+			{
+				newrequestIds[i]=tmp.get(i);
+				i++;
+			}
+			this.requestids=newrequestIds;			
+		}
+		else
+		return;
+		
 	}
 }

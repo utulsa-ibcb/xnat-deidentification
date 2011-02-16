@@ -56,6 +56,15 @@ public class RequestInfo {
 	{
 		return this.affectedsubjects;		
 	}
+	public String getaffectedsubjectstext()
+	{
+		String subjects = null;
+		for (String subject:this.affectedsubjects)
+		{
+			subjects+=subject+";";			
+		}
+		return subjects;
+	}
 	public void setaffectedsubjects(String subjectids)
 	{
 		this.affectedsubjects=subjectidParser(subjectids);
