@@ -6,11 +6,6 @@
 	<pip:description>A custom script to demo features of Pipeline Engine</pip:description>
 	<pip:estimated_time>00:00:02</pip:estimated_time>
 	<pip:input>
-    <!--
-		<pip:argument id="arg">
-			<pip:description>Unnamed arguments to the script</pip:description>
-		</pip:argument>
-    -->
 		<pip:argument id="mail_host">
 			<pip:description>Mail Server</pip:description>
 		</pip:argument>
@@ -47,7 +42,7 @@
 		<pip:argument id="ethnicity">
 			<pip:description>Demographics Fields</pip:description>
 		</pip:argument>
-		<pip:argument id="weigth">
+		<pip:argument id="weight">
 			<pip:description>Demographics Fields</pip:description>
 		</pip:argument>
 		<pip:argument id="height">
