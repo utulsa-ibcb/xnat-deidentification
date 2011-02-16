@@ -19,6 +19,12 @@ public class XNATSchema {
 		xnat_name_map = new HashMap<String, String>();
 	}
 	
+	public String getXnatFieldLocation(String field_id){
+		if(xnat_location_map.containsKey(field_id)){
+			return xnat_location_map.get(field_id);
+		}
+		return null;
+	}
 
 	public String getXnatFieldName(String field_id){
 		if(xnat_name_map.containsKey(field_id)){

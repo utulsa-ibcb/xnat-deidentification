@@ -19,6 +19,12 @@ public class DICOMSchema {
 		dicom_name_map = new HashMap<Pair<Integer, Integer>, String>();
 	}
 	
+	public Pair<Integer, Integer> getDICOMFieldLocation(String field_name){
+		if(dicom_location_map.containsKey(field_name)){
+			return dicom_location_map.get(field_name);
+		}
+		return null;
+	}
 
 	public String getDICOMFieldName(Pair<Integer, Integer> field_id){
 		if(dicom_name_map.containsKey(field_id)){
