@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pip:Resource xmlns:pip="http://nrg.wustl.edu/pipeline">
+	<pip:name>demo.sh</pip:name>
+	<pip:location>/opt/xnat/pipeline/sample_pipelines/wrapper_script</pip:location>
+	<pip:type>Executable</pip:type>
+	<pip:description>A custom script to demo features of Pipeline Engine</pip:description>
+	<pip:estimated_time>00:00:02</pip:estimated_time>
+	<pip:input>
+    <!--
+		<pip:argument id="arg">
+			<pip:description>Unnamed arguments to the script</pip:description>
+		</pip:argument>
+    -->
+		<pip:argument id="mail_host">
+			<pip:description>Mail Server</pip:description>
+		</pip:argument>
+		<pip:argument id="user_email">
+			<pip:description>User Email</pip:description>
+		</pip:argument>
+		<pip:argument id="admin_email">
+			<pip:description>Admin Email</pip:description>
+		</pip:argument>
+		<pip:argument id="project_id">
+			<pip:description>Project Id</pip:description>
+		</pip:argument>
+		<pip:argument id="subject_id">
+			<pip:description>Subject Id</pip:description>
+		</pip:argument>
+		<pip:argument id="session_id">
+			<pip:description>Session Id</pip:description>
+		</pip:argument>
+		<pip:argument id="session_label">
+			<pip:description>Session Label</pip:description>
+		</pip:argument>
+		<pip:argument id="dest_project">
+			<pip:description>Destination Project</pip:description>
+		</pip:argument>
+		<pip:argument id="dob">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+		<pip:argument id="gender">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+		<pip:argument id="race">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+		<pip:argument id="ethnicity">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+		<pip:argument id="weigth">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+		<pip:argument id="height">
+			<pip:description>Demographics Fields</pip:description>
+		</pip:argument>
+	</pip:input>
+</pip:Resource>

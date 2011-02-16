@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Pipeline xmlns="http://nrg.wustl.edu/pipeline" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:nrgString="java:org.nrg.pipeline.utils.StringUtils" xsi:schemaLocation="http://nrg.wustl.edu/pipeline ..\schema\pipeline.xsd">
+	<name>IBCBRedactor</name>
+	<location>/opt/xnat/pipeline/sample_pipelines</location> <!--script this -->
+	<!-- Filesystem path to the pipeline XML -->
+	<description>Redacts DICOM and XNAT data for an MRSession</description>
+    <!--
+	<loop id="nputparams" xpath="^Pipeline/documentation/input-parameters/parameter[name='demo_fields']/values/list^"/>
+    -->
+	<documentation>
+	   <authors>
+	   	<author>
+	   		<lastname>Macke</lastname>
+			<firstname>Stephen</firstname>
+	   	</author>
+	   </authors>
+		<version>1</version>
+		<input-parameters>
+            <parameter>
+                <name>destProject</name>
+                <values>
+                    <csv>My_Project</csv>
+                </values>
+                <description>Name of the already existing skeletal project which will accept the redacted MRSession</description>
+            </parameter>
+			<parameter>
+				<name>dob</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+                <!--
+				<values><schemalink>xnat:mrSessionData/scans/scan/ID</schemalink></values> //Figure out how to set this
+                -->
+				<description>The fields of the demographics data to redact</description>
+			</parameter>
+			<parameter>
+				<name>gender</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+				<description>gender demo field</description>
+			</parameter>
+			<parameter>
+				<name>race</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+				<description>race demo field</description>
+			</parameter>
+			<parameter>
+				<name>ethnicity</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+				<description>ethnicity demo field</description>
+			</parameter>
+			<parameter>
+				<name>weight</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+				<description>weight demo field</description>
+			</parameter>
+			<parameter>
+				<name>height</name>
+                <values>
+                    <csv>Y</csv>
+                </values>
+				<description>height demo field</description>
+			</parameter>
+			<parameter>
+				<name>project</name>
+				<values><schemalink>xnat:mrSessionData/project</schemalink></values>
+				<description>Project ID</description>
+			</parameter>
+			<parameter>
+				<name>subject</name>
+				<values><schemalink>xnat:mrSessionData/subject_ID</schemalink></values>
+				<description>Subject ID</description>
+			</parameter>
+			<parameter>
+				<name>sessionId</name>
+				<values><schemalink>xnat:mrSessionData/ID</schemalink></values>
+				<description>The XNAT ID (Accession Number) of the session</description>
+			</parameter>
+			<parameter>
+				<name>sessionLabel</name>
+				<values><schemalink>xnat:mrSessionData/label</schemalink></values>
+				<description>The session's label</description>
+			</parameter>
+		</input-parameters>
+	</documentation>
+	<xnatInfo appliesTo="xnat:mrSessionData"/>
+	<outputFileNamePrefix>^concat('/opt/xnat/pipeline','/sample_pipelines/IBCBRedactor')^</outputFileNamePrefix> <!--script this-->
+	<!--<loop id="mailparams" xpath="^Pipeline/parameters/parameter[name='message_passing']/values/list^"/>-->
+	<loop id="demoparams" xpath="^Pipeline/parameters/parameter[name='demoFields']/values/list^"/>
+	<!-- Description of the Pipeilne -->
+    <!--
+	<loop id="xnatparams" xpath="^/Pipeline/parameters/parameter[name='xnat']/values/list^"/>
+    -->
+	<parameters>
+        <!--
+		<parameter>
+			<name>message_passing</name>
+			<values>
+                <list>^Pipeline/parameters/parameter[name='experiment']/values/unique/text()^</list>
+                <list>^Pipeline/parameters/parameter[name='project']/values/unique/text()^</list>
+                <list>^Pipeline/parameters/parameter[name='subject']/values/unique/text()^</list>
+                <list>^Pipeline/parameters/parameter[name='mailhost']/values/unique/text()^</list>
+                <list>^Pipeline/parameters/parameter[name='useremail']/values/unique/text()^</list>
+                <list>^Pipeline/parameters/parameter[name='adminemail']/values/unique/text()^</list>
+			</values>
+		</parameter>
+        -->
+    <!--
+		<parameter>
+			<name>userfullname</name>
+			<values>
+				<unique>John Doe</unique>
+			</values>
+		</parameter>
+    -->
+	</parameters>
+	<steps>
+    <!--
+		<step id="INIT" description="Create sample demo directory" workdirectory="/opt/xnat/pipeline">
+			<resource name="mkdir" location="commandlineTools">
+				<argument id="dirname">
+					<value>mackest_demo</value>
+				</argument>
+			</resource>
+		</step>
+		<step id="0" description="Using loops. Create subfolders in the directory specified by workdirectory" workdirectory="/opt/xnat/pipeline/mackest_demo">
+			<resource name="mkdir" location="commandlineTools">
+				<argument id="dirname">
+					<value>^PIPELINE_LOOPON(xnatparams)^</value>
+				</argument>
+			</resource>
+		</step>
+		<step id="1" description="Using loops. Create subfolders in the directory specified by workdirectory" workdirectory="/opt/xnat/pipeline/mackest_demo">
+			<resource name="mkdir" location="commandlineTools">
+				<argument id="dirname">
+					<value>^PIPELINE_LOOPON(xnatparams)^</value>
+				</argument>
+			</resource>
+		</step>
+    -->
+		<step id="0" description="Launch demo redaction script">
+			<resource name="demo" location="/opt/xnat/pipeline/sample_pipelines/resources"> <!--Script this-->
+				<argument id="mail_host">
+					<value>^Pipeline/parameters/parameter[name='mailhost']/values/unique/text()^</value>
+				</argument>
+				<argument id="user_email">
+					<value>^Pipeline/parameters/parameter[name='useremail']/values/unique/text()^</value>
+				</argument>
+				<argument id="admin_email">
+					<value>^Pipeline/parameters/parameter[name='adminemail']/values/unique/text()^</value>
+				</argument>
+				<argument id="project_id">
+					<value>^Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+				</argument>
+				<argument id="subject_id">
+					<value>^Pipeline/parameters/parameter[name='subject']/values/unique/text()^</value>
+				</argument>
+				<argument id="session_id">
+					<value>^Pipeline/parameters/parameter[name='sessionId']/values/unique/text()^</value>
+				</argument>
+				<argument id="session_label">
+					<value>^Pipeline/parameters/parameter[name='sessionLabel']/values/unique/text()^</value>
+				</argument>
+				<argument id="dest_project">
+					<value>^Pipeline/parameters/parameter[name='destProject']/values/unique/text()^</value>
+				</argument>
+				<argument id="dob">
+					<value>^Pipeline/parameters/parameter[name='dob']/values/unique/text()^</value>
+				</argument>
+				<argument id="gender">
+					<value>^Pipeline/parameters/parameter[name='gender']/values/unique/text()^</value>
+				</argument>
+				<argument id="race">
+					<value>^Pipeline/parameters/parameter[name='race']/values/unique/text()^</value>
+				</argument>
+				<argument id="ethnicity">
+					<value>^Pipeline/parameters/parameter[name='ethnicity']/values/unique/text()^</value>
+				</argument>
+				<argument id="weight">
+					<value>^Pipeline/parameters/parameter[name='weight']/values/unique/text()^</value>
+				</argument>
+				<argument id="height">
+					<value>^Pipeline/parameters/parameter[name='height']/values/unique/text()^</value>
+				</argument>
+			</resource>
+		</step>
+	</steps>
+</Pipeline>
