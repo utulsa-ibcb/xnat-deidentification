@@ -97,7 +97,8 @@ public class DBManager extends Thread{
 				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
 				if (phidatamap.containsKey("PatientName"))
 				{
-					PatientName=phidatamap.get("PatientName");					
+					PatientName=phidatamap.get("PatientName");	
+					System.out.println("search for name:"+PatientName);
 					if (phidatamap.containsKey("PatientBirthdate"))
 						PatientBirthdate=phidatamap.get("PatientBirthdate");
 					if (phidatamap.containsKey("PatientAge"))
@@ -107,9 +108,10 @@ public class DBManager extends Thread{
 					if (phidatamap.containsKey("xnat:age"))
 						xnat_age=phidatamap.get("xnat:age");
 					stmt = newcon.createStatement();
-					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'"+PatientName+"\' ;");
+					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'%"+PatientName+"%\' ;");
 					while (findSame.next())
 					{
+						System.out.println("find subjects with same name");
 						String tmpPhidata=findSame.getString("phidata");
 						HashMap<String,String> tmpPhidataMap=SubjectInfo.transphiMap(tmpPhidata);
 						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate==tmpPhidataMap.get("PatientBirthdate")))
