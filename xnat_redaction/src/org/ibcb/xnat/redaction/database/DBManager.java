@@ -167,6 +167,7 @@ public class DBManager extends Thread{
 				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
 				for (String key:phidatamap.keySet())
 				{
+					System.out.println("Checked out fields "+key+" for "+subjectid);
 					checkoutMap.put(key, "1");
 				}
 			}
@@ -218,15 +219,6 @@ public class DBManager extends Thread{
 			//Find the associated userids
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
-				/*if (rs.next())
-				{
-					rs.last();
-					int rowCount = rs.getRow();	
-					rs.first();
-					newinfo=new RequestInfo[rowCount];
-				}
-				int i=0;*/
-				
 				while(rs.next())
 				{		
 					newinfo.add(new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects")));
@@ -248,6 +240,7 @@ public class DBManager extends Thread{
 						if (samesubjects.isEmpty()) break;			
 						for (String samesubject : samesubjects)
 						{
+							System.out.println("same subject "+samesubject);
 							if (!checkoutinfo.containsKey(samesubject))
 								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject));
 							else
