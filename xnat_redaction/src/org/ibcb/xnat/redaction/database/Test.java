@@ -15,14 +15,21 @@ public class Test {
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
 		DBinit newinit=new DBinit();
-		newinit.setupDB();
+		newinit.setupDB("129.244.244.25");
 		DBManager singlethreadtest=new DBManager(DBManager.SINGLE_THREAD);
-		System.out.println("try to insert subject info record");
-		SubjectInfo sinfo=new SubjectInfo("test001","PatientName,Liang;PatientAge,99;StudyDate,10/20/10;","testproject","testrequest001;");
-		singlethreadtest.insertSubjectInfo(sinfo);
+		System.out.println("try to insert subject info record001");
+		SubjectInfo s1info=new SubjectInfo("test001","PatientName,Liang;PatientAge,99;StudyDate,10/20/10;","testproject","testrequest001;");
+		singlethreadtest.insertSubjectInfo(s1info);
+		System.out.println("try to insert subject info record002");
+		SubjectInfo s2info=new SubjectInfo("test002","PatientName,Liang;PatientAge,99;","testproject","testrequest002;");
+		singlethreadtest.insertSubjectInfo(s2info);
 		System.out.println("try to insert request info record");
-		RequestInfo rinfo=new RequestInfo("testrequest1","testuser1","2011-1-23","admin","test001;");
-		singlethreadtest.insertRequestInfo(rinfo);
+		RequestInfo r1info=new RequestInfo("testrequest001","testuser1","2011-1-23","admin","test001;");
+		singlethreadtest.insertRequestInfo(r1info);
+		System.out.println("try to insert request info record");
+		RequestInfo r2info=new RequestInfo("testrequest002","testuser1","2011-1-25","admin","test002;");
+		singlethreadtest.insertRequestInfo(r2info);
+		singlethreadtest.getUserCheckOutInfo("testuser1");
 	}
 
 }

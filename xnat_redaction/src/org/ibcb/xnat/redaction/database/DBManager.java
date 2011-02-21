@@ -20,21 +20,24 @@ public class DBManager extends Thread{
 	public static final int UPDATE_SUBJECTINFO=3;
 	public int type_of_work=0;
 	protected Statement stmt;
+	String hostname="129.244.244.25";
 	static 
 	{
 		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
 		datasource.setDataSourceName("A Pooling Source");
-		datasource.setServerName("localhost");
-		datasource.setDatabaseName("PrivacyDB");
-		datasource.setUser("xnat");
-		datasource.setPassword("xnat");
+		datasource.setServerName("");
+		datasource.setDatabaseName("privacydb");
+		datasource.setUser("xnat_react");
+		datasource.setPassword("xnat_react");
 		datasource.setMaxConnections(20);
 		
 	}
 	public DBManager(int type_of_work)
 	{
+		datasource.setServerName(hostname);
 		this.type_of_work=type_of_work;
 		Initializer();
+
 	}
 	private void Initializer()
 	{
@@ -73,7 +76,7 @@ public class DBManager extends Thread{
 		return con;
 	}
 
-	public String[] findSameSubjects(String subjectId)
+	public LinkedList<String> findSameSubjects(String subjectId)
 	{
 		String[] sameSubjects=null;
 		LinkedList<String> sameSubjectIds=new LinkedList<String>();
@@ -130,20 +133,13 @@ public class DBManager extends Thread{
 							break;
 							}						
 					}
-					sameSubjects=new String[sameSubjects.length];
-					int i=0;
-					for (String id:sameSubjectIds)
-					{
-						sameSubjects[i]=id;
-						i++;
-					}
 					newcon.close();
-					return sameSubjects;
+					return sameSubjectIds;
 				}
 				else
 				{
 					newcon.close();
-					return sameSubjects;
+					return sameSubjectIds;
 				}
 					
 			}
@@ -156,7 +152,7 @@ public class DBManager extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return sameSubjects;
+		return sameSubjectIds;
 	}
 	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid)
 	{
@@ -218,21 +214,22 @@ public class DBManager extends Thread{
 		try {
 			newcon = datasource.getConnection();
 			HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
-			RequestInfo[] newinfo = null;
+			LinkedList<RequestInfo> newinfo = new LinkedList<RequestInfo>();
 			//Find the associated userids
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
-				if (rs.next())
+				/*if (rs.next())
 				{
 					rs.last();
 					int rowCount = rs.getRow();	
 					rs.first();
 					newinfo=new RequestInfo[rowCount];
 				}
-				int i=0;
+				int i=0;*/
+				
 				while(rs.next())
 				{		
-					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"));
+					newinfo.add(new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects")));
 				}
 				//for all the requests the user had
 				for (RequestInfo info:newinfo)
@@ -246,9 +243,9 @@ public class DBManager extends Thread{
 						else
 							updateSubjectCheckOutInfo(subjectid,checkoutinfo.get(subjectid));					
 						//search and update the same subject with different if
-						String[] samesubjects=findSameSubjects(subjectid);
+						LinkedList<String> samesubjects=findSameSubjects(subjectid);
 						if (samesubjects==null) break;
-						if (samesubjects.length==0) break;			
+						if (samesubjects.isEmpty()) break;			
 						for (String samesubject : samesubjects)
 						{
 							if (!checkoutinfo.containsKey(samesubject))
