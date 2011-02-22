@@ -14,10 +14,10 @@ public class Test {
 	 */
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
-		DBinit newinit=new DBinit();
-		newinit.setupDB("129.244.244.25");
+		//DBinit newinit=new DBinit();
+		//newinit.setupDB("129.244.244.25");
 		DBManager singlethreadtest=new DBManager(DBManager.SINGLE_THREAD);
-		System.out.println("try to insert subject info record001");
+		/*System.out.println("try to insert subject info record001");
 		SubjectInfo s1info=new SubjectInfo("test001","PatientName,Liang;PatientAge,99;StudyDate,10/20/10;","testproject","testrequest001;");
 		singlethreadtest.insertSubjectInfo(s1info);
 		System.out.println("try to insert subject info record002");
@@ -28,7 +28,7 @@ public class Test {
 		singlethreadtest.insertRequestInfo(r1info);
 		System.out.println("try to insert request info record");
 		RequestInfo r2info=new RequestInfo("testrequest002","testuser1","2011-1-25","admin","test002;");
-		singlethreadtest.insertRequestInfo(r2info);
+		singlethreadtest.insertRequestInfo(r2info);*/
 		singlethreadtest.getUserCheckOutInfo("testuser1");
 	}
 

@@ -20,15 +20,15 @@ public class DBManager extends Thread{
 	public static final int UPDATE_SUBJECTINFO=3;
 	public int type_of_work=0;
 	protected Statement stmt;
-	String hostname="129.244.244.25";
+	String hostname="localhost";
 	static 
 	{
 		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
 		datasource.setDataSourceName("A Pooling Source");
 		datasource.setServerName("");
 		datasource.setDatabaseName("privacydb");
-		datasource.setUser("xnat_react");
-		datasource.setPassword("xnat_react");
+		datasource.setUser("xnat");
+		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 		
 	}
@@ -98,7 +98,7 @@ public class DBManager extends Thread{
 				if (phidatamap.containsKey("PatientName"))
 				{
 					PatientName=phidatamap.get("PatientName");	
-					System.out.println("search for name:"+PatientName);
+					//System.out.println("search for name:"+PatientName);
 					if (phidatamap.containsKey("PatientBirthdate"))
 						PatientBirthdate=phidatamap.get("PatientBirthdate");
 					if (phidatamap.containsKey("PatientAge"))
@@ -107,31 +107,32 @@ public class DBManager extends Thread{
 						xnat_dob=phidatamap.get("xnat:dob");
 					if (phidatamap.containsKey("xnat:age"))
 						xnat_age=phidatamap.get("xnat:age");
+					newcon=this.getConnection();
 					stmt = newcon.createStatement();
-					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'%"+PatientName+"%\' ;");
+					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'%"+PatientName+"%\' AND subjectid<>\'"+subjectId+"\' ;");
 					while (findSame.next())
 					{
-						System.out.println("find subjects with same name");
+						//System.out.println("find subjects with same name");
 						String tmpPhidata=findSame.getString("phidata");
 						HashMap<String,String> tmpPhidataMap=SubjectInfo.transphiMap(tmpPhidata);
-						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate==tmpPhidataMap.get("PatientBirthdate")))
+						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate.equals(tmpPhidataMap.get("PatientBirthdate"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
+							break;
+							}	
+						if (phidatamap.containsKey("PatientAge") && (PatientAge.equals(tmpPhidataMap.get("PatientAge"))))
+							{
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}
-						if (phidatamap.containsKey("PatientAge") && (PatientAge==tmpPhidataMap.get("PatientAge")))
+						if (phidatamap.containsKey("xnat:dob") && (xnat_dob.equals(tmpPhidataMap.get("xnat:dob"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}
-						if (phidatamap.containsKey("xnat:dob") && (xnat_dob==tmpPhidataMap.get("xnat:dob")))
+						if (phidatamap.containsKey("xnat:age") && (xnat_age.equals(tmpPhidataMap.get("xnat:age"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
-							break;
-							}
-						if (phidatamap.containsKey("xnat:age") && (xnat_age==tmpPhidataMap.get("xnat:age")))
-							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}						
 					}
@@ -169,7 +170,7 @@ public class DBManager extends Thread{
 				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
 				for (String key:phidatamap.keySet())
 				{
-					System.out.println("Checked out fields "+key+" for "+subjectid);
+					//System.out.println("Checked out fields "+key+" for "+subjectid);
 					checkoutMap.put(key, "1");
 				}
 			}
@@ -187,28 +188,23 @@ public class DBManager extends Thread{
 		
 		
 	}
-	public void updateSubjectCheckOutInfo(String subjectid,HashMap<String,String> checkoutMap)
+	
+	private  HashMap<String,String> mergeHashMap( HashMap<String,String> origin,  HashMap<String,String> update)
 	{
-		Connection newcon = null;
-		try {
-			newcon = datasource.getConnection();
-			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
-			while (rs.next())
-			{
-				String phidata=rs.getString("phidata");
-				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
-				for (String key:phidatamap.keySet())
-				{
-					if (!checkoutMap.containsKey(key))
-					checkoutMap.put(key, "1");
-				}
-			}
-			newcon.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+		for (String key : update.keySet())
+		{
+			if (!origin.containsKey(key))
+			origin.put(key, update.get(key));
+		}
+		return origin;		
+	}
+	
+	private void updateCheckOutInfo(HashMap<String,HashMap<String,String>> 	checkoutinfo, String subjectid, HashMap<String,String> update )
+	{
+		HashMap<String,String> origin=checkoutinfo.get(subjectid);
+		origin=mergeHashMap(origin,update);
+		checkoutinfo.remove(subjectid);
+		checkoutinfo.put(subjectid, origin);
 	}
 	
 	public HashMap<String,HashMap<String,String>> getUserCheckOutInfo(String userid)
@@ -235,22 +231,32 @@ public class DBManager extends Thread{
 						if (!checkoutinfo.containsKey(subjectid))
 							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid));
 						else
-							updateSubjectCheckOutInfo(subjectid,checkoutinfo.get(subjectid));					
+							updateCheckOutInfo(checkoutinfo,subjectid,checkoutinfo.get(subjectid));					
 						//search and update the same subject with different if
 						LinkedList<String> samesubjects=findSameSubjects(subjectid);
 						if (samesubjects==null) break;
 						if (samesubjects.isEmpty()) break;			
 						for (String samesubject : samesubjects)
 						{
-							System.out.println("same subject "+samesubject);
+							System.out.println("same subject "+samesubject+" for "+subjectid);
+							updateCheckOutInfo(checkoutinfo,subjectid, getSubjectCheckOutInfo(samesubject));
 							if (!checkoutinfo.containsKey(samesubject))
 								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject));
 							else
-								updateSubjectCheckOutInfo(samesubject,checkoutinfo.get(samesubject));					
+								updateCheckOutInfo(checkoutinfo,samesubject,checkoutinfo.get(samesubject));	
 						}
 					}
 				}
 				newcon.close();
+				//out put the checkoutinfo
+				for (String subject : checkoutinfo.keySet())
+				{
+					System.out.println("For subject:"+subject);
+					for (String key : checkoutinfo.get(subject).keySet())
+					{
+						System.out.println("key = "+key+" value = "+checkoutinfo.get(subject).get(key));
+					}		
+				}
 				return checkoutinfo;
 			} catch (SQLException e) {
 				e.printStackTrace();
