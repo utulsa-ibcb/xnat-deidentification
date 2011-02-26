@@ -7,6 +7,7 @@ public class RequestInfo {
 	private String date;
 	private String adminid;
 	private String[] affectedsubjects;
+	private String checkoutinfo;
 	
 	public RequestInfo(String requestid,String userid,String date,String adminid,String[] subjectids)
 	{
@@ -16,13 +17,14 @@ public class RequestInfo {
 		this.affectedsubjects=subjectids;
 		this.adminid=adminid;
 	}
-	public RequestInfo(String requestid,String userid,String date,String adminid,String subjectids)
+	public RequestInfo(String requestid,String userid,String date,String adminid,String subjectids,String cinfo)
 	{
 		this.requestid=requestid;
 		this.userid=userid;
 		this.date=date;
 		this.adminid=adminid;
 		this.affectedsubjects=subjectidParser(subjectids);
+		this.checkoutinfo=cinfo;
 	}
 	public RequestInfo() {
 		// TODO Auto-generated constructor stub
@@ -81,6 +83,27 @@ public class RequestInfo {
 		String[] subjectids=subjectid.split(";");
 		return subjectids;		
 	}
+	public void setcheckoutinfo(String cinfo)
+	{
+		this.checkoutinfo=cinfo;
+	}
+	public String getcheckoutinfo()
+	{
+		return this.checkoutinfo;		
+	}
+	public String[] getcheckoutinfolist()
+	{
+		return this.checkoutinfoParser(this.checkoutinfo);		
+	}
 	
+	
+	public static String[] checkoutinfoParser(String cinfo)
+	{
+		//parse all the requestids
+		if (cinfo.length()<1) return null;
+		if (!cinfo.contains(";")) return null;
+		String[] Checkinfo=cinfo.split(";");
+		return Checkinfo;		
+	}
 
 }

@@ -32,6 +32,14 @@ public class DBManager extends Thread{
 		datasource.setMaxConnections(20);
 		
 	}
+	public DBManager(int type_of_work,String Hostname)
+	{
+		this.hostname=Hostname;
+		datasource.setServerName(hostname);
+		this.type_of_work=type_of_work;
+		Initializer();
+
+	}
 	public DBManager(int type_of_work)
 	{
 		datasource.setServerName(hostname);
@@ -157,20 +165,22 @@ public class DBManager extends Thread{
 		}
 		return sameSubjectIds;
 	}
-	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid)
+	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid,String userid)
 	{
 		Connection newcon = this.getConnection();
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid=\'"+subjectid+"\' AND rinfo.userid=\'"+userid+"\';");
 			while (rs.next())
 			{
-				String phidata=rs.getString("phidata");
-				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
-				for (String key:phidatamap.keySet())
+				String checkoutinfo=rs.getString("checkoutinfo");
+				System.out.println(checkoutinfo);
+				String[] checkouinfolist=RequestInfo.checkoutinfoParser(checkoutinfo);
+				for (String key:checkouinfolist)
 				{
-					//System.out.println("Checked out fields "+key+" for "+subjectid);
+					//System.out.println("Checked out fields "+key+" for "+subjectid+" by "+userid);
+					if (!checkoutMap.containsKey(key))
 					checkoutMap.put(key, "1");
 				}
 			}
@@ -219,7 +229,7 @@ public class DBManager extends Thread{
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
 				while(rs.next())
 				{		
-					newinfo.add(new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects")));
+					newinfo.add(new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"),rs.getString("checkoutinfo")));
 				}
 				//for all the requests the user had
 				for (RequestInfo info:newinfo)
@@ -229,7 +239,7 @@ public class DBManager extends Thread{
 					{
 						//update the checkou map for this subject id
 						if (!checkoutinfo.containsKey(subjectid))
-							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid));
+							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid,userid));
 						else
 							updateCheckOutInfo(checkoutinfo,subjectid,checkoutinfo.get(subjectid));					
 						//search and update the same subject with different if
@@ -239,9 +249,9 @@ public class DBManager extends Thread{
 						for (String samesubject : samesubjects)
 						{
 							System.out.println("same subject "+samesubject+" for "+subjectid);
-							updateCheckOutInfo(checkoutinfo,subjectid, getSubjectCheckOutInfo(samesubject));
+							updateCheckOutInfo(checkoutinfo,subjectid, getSubjectCheckOutInfo(samesubject,userid));
 							if (!checkoutinfo.containsKey(samesubject))
-								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject));
+								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject,userid));
 							else
 								updateCheckOutInfo(checkoutinfo,samesubject,checkoutinfo.get(samesubject));	
 						}
@@ -309,7 +319,7 @@ public class DBManager extends Thread{
 				if (rs.getBigDecimal("count").intValue()==0)
 				{
 					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\');");
+					stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects,checkoutinfo) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\',\'"+rinfo.getcheckoutinfo()+"\');");
 				}
 			}
 			newcon.close();			
