@@ -107,84 +107,6 @@ public class Loader {
 
 			Checkout.instance().downloadProjectXML(project);
 			
-			// for each user in the project
-			for(String subject_id : project.subject_ids){
-				// download checkout user information from our database -Liang
-				
-				
-				// populate map of checkout fields -Liang
-				HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
-				
-				
-				
-				// run permissions checks against checkout ruleset information
-				boolean passed = cr.filter(requesting_user_data);
-				
-				// if passed, download remainder of project information
-				
-				if(passed){
-					
-					Checkout.instance().downloadSubjectXML(project, subject_id);
-//					Checkout.instance().downloadSubjectFiles(project, subject_id);
-					// redact XNATSubject demographics
-				
-					XNATSubject subject = project.subjects.get(subject_id);
-					subject.passed=true;
-					HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true, ruleset);
-					
-					HashMap<String, LinkedList<String>> dicom_demographics = new HashMap<String, LinkedList<String>>();
-					
-					for(String experiment_id : subject.experiment_ids){
-						for(String scan_id : subject.scan_ids.get(experiment_id)){
-						// redact DICOMFiles
-							XNATScan scan = subject.scans.get(scan_id);
-							for(String file : scan.localFiles){
-								String input = scan.tmp_folder+"/"+file;
-								
-								DicomObject obj = dext.loadDicom(input);
-								
-								HashMap<String,String> hs = dext.extractNameValuePairs(obj, ruleset, req_field_names);
-								
-								// Store hs data in dicom map
-								
-								for(String key : hs.keySet()){
-									String val = hs.get(key);
-									
-									if(!dicom_demographics.containsKey(key))
-										dicom_demographics.put(key, new LinkedList<String>());
-									if(!dicom_demographics.get(key).contains(val))
-										dicom_demographics.get(key).add(val);
-								}
-								
-								File dir = new File(scan.tmp_folder+"/redacted");
-								if(!dir.exists()){
-									dir.mkdirs();
-								}
-								String nfilename = scan.tmp_folder+"/redacted/"+file;
-								dext.writeDicom(nfilename, obj);
-								
-//								DicomObject obj2_test = dext.loadDicom(nfilename);							
-//								hs = dext.extractNameValuePairs(obj2_test, ruleset);
-							}
-						}
-					}
-					// upload redacted information to database -Liang			
-					// PatientAge = [31, 32]
-					// subject_id, field, values
-					
-					// reinsert requested, authorized information into XNAT and DICOM -Matt			
-					for(String field : req_field_names){
-						if(xnat_demographics.containsKey(field)){
-							xext.insertData(subject.xml, "xnat:"+field, xnat_demographics.get(field));
-						}
-					}
-					
-					// update information about checked out PHI to database -Liang
-					
-				}
-			}
-			
-			
 			// ***Possibly Canceled Feature*** upload new project -Matt
 			
 			// Get target project
@@ -193,11 +115,97 @@ public class Loader {
 			target.id = dest_project_id;
 			api.retreiveProject(target);
 			
-			// upload subject information -Matt
 			
-			for(String sid : project.subject_ids){
-				XNATSubject subject = project.subjects.get(sid);
+			// for each user in the project
+			for(String subject_id : project.subject_ids){
+				
+				// download subject information and redact
+				Checkout.instance().downloadSubjectXML(project, subject_id);
+				// Checkout.instance().downloadSubjectFiles(project, subject_id);
+				// redact XNATSubject demographics
+			
+				XNATSubject subject = project.subjects.get(subject_id);
+				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true, ruleset);
+				
+				HashMap<String, LinkedList<String>> dicom_demographics = new HashMap<String, LinkedList<String>>();
+				
+				for(String experiment_id : subject.experiment_ids){
+					for(String scan_id : subject.scan_ids.get(experiment_id)){
+					// redact DICOMFiles
+						XNATScan scan = subject.scans.get(scan_id);
+						for(String file : scan.localFiles){
+							String input = scan.tmp_folder+"/"+file;
+							
+							DicomObject obj = dext.loadDicom(input);
+							
+							HashMap<String,String> hs = dext.extractNameValuePairs(obj, ruleset, req_field_names);
+							
+							// Store hs data in dicom map
+							
+							for(String key : hs.keySet()){
+								String val = hs.get(key);
+								
+								if(!dicom_demographics.containsKey(key))
+									dicom_demographics.put(key, new LinkedList<String>());
+								if(!dicom_demographics.get(key).contains(val))
+									dicom_demographics.get(key).add(val);
+							}
+							
+							File dir = new File(scan.tmp_folder+"/redacted");
+							if(!dir.exists()){
+								dir.mkdirs();
+							}
+							String nfilename = scan.tmp_folder+"/redacted/"+file;
+							dext.writeDicom(nfilename, obj);
+							
+//								DicomObject obj2_test = dext.loadDicom(nfilename);							
+//								hs = dext.extractNameValuePairs(obj2_test, ruleset);
+						}
+					}
+				}
+				
+				// download checkout user information from our database -Liang
+				
+				
+				// populate map of checkout fields -Liang
+				// HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
+				
+				// Using the above data, along with req_field_names and insert resulting data into the filter_data hashmap
+				// example:
+				// user has already checked out Age previously, and is requesting to check out Race now
+				// filter_data looks like this:
+				// phi_checked_out		2
+				// request_PatientAge	1
+				// request_PatientRace	1
+				// request_...			0
+				// ...					0
+				// 
+				// 
+				
+				HashMap<String, String> filter_data = new HashMap<String,String>();
+				// run permissions checks against checkout ruleset information
+				
+				subject.passed = true;//cr.filter(filter_data);
+				// upload redacted information to database -Liang			
+				// PatientAge = [31, 32]
+				// subject_id, field, values
+				
+				// update information about checked out PHI to database -Liang
+				
+				// don't forget to store the destination ids for tracking our redacted data: subject.destination_id
+				// xnat_demographics and dicom_demographics applies to the current subject object
+				
+				
+				// upload subject information -Matt
 				if(subject.passed){
+					
+					// reinsert requested, authorized information into XNAT and DICOM -Matt			
+					for(String field : req_field_names){
+						if(xnat_demographics.containsKey(field)){
+							xext.insertData(subject.xml, "xnat:"+field, xnat_demographics.get(field));
+						}
+					}
+					
 					String response = api.postSubject(target);
 					subject.destination_id = response.substring(response.lastIndexOf('/')+1);
 					
