@@ -3,9 +3,11 @@ package org.ibcb.xnat.redaction;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimeZone;
@@ -15,6 +17,7 @@ import org.ibcb.xnat.redaction.config.CheckoutRuleset;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.config.XNATSchema;
+import org.ibcb.xnat.redaction.database.*;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
 import org.ibcb.xnat.redaction.interfaces.XNATExperiment;
@@ -23,7 +26,6 @@ import org.ibcb.xnat.redaction.interfaces.XNATRestAPI;
 import org.ibcb.xnat.redaction.interfaces.XNATScan;
 import org.ibcb.xnat.redaction.interfaces.XNATSubject;
 import org.ibcb.xnat.redaction.synchronization.Globals;
-
 public class Loader {
 	static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -115,6 +117,15 @@ public class Loader {
 			target.id = dest_project_id;
 			api.retreiveProject(target);
 			
+			//init DB manager
+			DBManager db=new DBManager();
+			//init a new request
+			Date dt=new Date();
+			//leave affected subjectids blank for now
+			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",request_fields);
+			BigDecimal requestId=db.insertRequestInfo(r_info);
+			HashMap<String,HashMap<String,String>> overallCheckoutInfo=db.getUserCheckOutInfo(co_user_id);
+			
 			
 			// for each user in the project
 			for(String subject_id : project.subject_ids){
@@ -165,7 +176,7 @@ public class Loader {
 				}
 				
 				// download checkout user information from our database -Liang
-				
+				HashMap<String,String> subjectCheckoutInfo=overallCheckoutInfo.get(subject_id);
 				
 				// populate map of checkout fields -Liang
 				// HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
@@ -198,6 +209,14 @@ public class Loader {
 				
 				// upload subject information -Matt
 				if(subject.passed){
+					
+					
+					
+					
+					//Create a subject info for passed subject
+					SubjectInfo s_info=new SubjectInfo(subject.id,subject.demographics.toString(),project_id,requestId.toPlainString());
+					
+					
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
 					for(String field : req_field_names){

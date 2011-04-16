@@ -24,10 +24,10 @@ public class Test {
 		SubjectInfo s2info=new SubjectInfo("test002","PatientName,Liang;PatientAge,99;","testproject","testrequest002;");
 		singlethreadtest.insertSubjectInfo(s2info);
 		System.out.println("try to insert request info record");
-		RequestInfo r1info=new RequestInfo("testrequest001","testuser1","2011-1-23","admin","test001;","PatientName;PatientAge;StudyDate;");
+		RequestInfo r1info=new RequestInfo("testuser1","2011-1-23","admin","test001;","PatientName;PatientAge;StudyDate;");
 		singlethreadtest.insertRequestInfo(r1info);
 		System.out.println("try to insert request info record");
-		RequestInfo r2info=new RequestInfo("testrequest002","testuser1","2011-1-25","admin","test002;","PatientName;PatientAge;");
+		RequestInfo r2info=new RequestInfo("testuser1","2011-1-25","admin","test002;","PatientName;PatientAge;");
 		singlethreadtest.insertRequestInfo(r2info);
 		singlethreadtest.getUserCheckOutInfo("testuser1");
 	}

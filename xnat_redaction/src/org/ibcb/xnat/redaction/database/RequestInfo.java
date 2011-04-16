@@ -1,15 +1,17 @@
 package org.ibcb.xnat.redaction.database;
 
+import java.math.BigDecimal;
+
 public class RequestInfo {
 	
-	private String requestid;
+	private BigDecimal requestid;
 	private String userid;
 	private String date;
 	private String adminid;
 	private String[] affectedsubjects;
 	private String checkoutinfo;
 	
-	public RequestInfo(String requestid,String userid,String date,String adminid,String[] subjectids)
+	public RequestInfo(BigDecimal requestid,String userid,String date,String adminid,String[] subjectids)
 	{
 		this.requestid=requestid;
 		this.userid=userid;
@@ -17,9 +19,20 @@ public class RequestInfo {
 		this.affectedsubjects=subjectids;
 		this.adminid=adminid;
 	}
-	public RequestInfo(String requestid,String userid,String date,String adminid,String subjectids,String cinfo)
+
+	public RequestInfo(BigDecimal requestid,String userid,String date,String adminid,String subjectids,String cinfo)
 	{
 		this.requestid=requestid;
+		this.userid=userid;
+		this.date=date;
+		this.adminid=adminid;
+		this.affectedsubjects=subjectidParser(subjectids);
+		this.checkoutinfo=cinfo;
+	}
+
+	public RequestInfo(String userid,String date,String adminid,String subjectids,String cinfo)
+	{
+		//this.requestid=requestid;
 		this.userid=userid;
 		this.date=date;
 		this.adminid=adminid;
@@ -29,10 +42,10 @@ public class RequestInfo {
 	public RequestInfo() {
 		// TODO Auto-generated constructor stub
 	}
-	public String getRequestid() {
+	public BigDecimal getRequestid() {
 		return requestid;
 	}
-	public void setRequestid(String requestid) {
+	public void setRequestid(BigDecimal requestid) {
 		this.requestid = requestid;
 	}
 	public String getUserid() {

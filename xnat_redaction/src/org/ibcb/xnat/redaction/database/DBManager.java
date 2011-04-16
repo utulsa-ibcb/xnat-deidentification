@@ -1,5 +1,6 @@
 package org.ibcb.xnat.redaction.database;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -46,6 +47,12 @@ public class DBManager extends Thread{
 		this.type_of_work=type_of_work;
 		Initializer();
 
+	}
+	public DBManager()
+	{
+		type_of_work=SINGLE_THREAD;
+		datasource.setServerName(hostname);
+		Initializer();
 	}
 	private void Initializer()
 	{
@@ -227,9 +234,10 @@ public class DBManager extends Thread{
 			//Find the associated userids
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
+				//rs.getBigDecimal("");
 				while(rs.next())
-				{		
-					newinfo.add(new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"),rs.getString("checkoutinfo")));
+				{				
+					newinfo.add(new RequestInfo(rs.getBigDecimal("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"),rs.getString("checkoutinfo")));
 				}
 				//for all the requests the user had
 				for (RequestInfo info:newinfo)
@@ -308,27 +316,54 @@ public class DBManager extends Thread{
 			e.printStackTrace();
 		}
 	}
-	public void insertRequestInfo(RequestInfo rinfo)
+	public BigDecimal insertRequestInfo(RequestInfo rinfo)
 	{		
+		BigDecimal nextid = null;
 		Connection newcon = this.getConnection();
-		try {
+		try {		
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM requestinfo WHERE requestid=\'"+rinfo.getRequestid()+"\';");
-			if (rs.next())
+			ResultSet id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+			if (id_rs.next())
 			{
-				if (rs.getBigDecimal("count").intValue()==0)
-				{
-					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects,checkoutinfo) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\',\'"+rinfo.getcheckoutinfo()+"\');");
-				}
-			}
+				nextid=id_rs.getBigDecimal("nextval");
+				//System.out.println("next id "+nextid);
+			}	
+			stmt = newcon.createStatement();	
+			stmt = newcon.createStatement();
+			stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects,checkoutinfo) VALUES(\'"+nextid+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\',\'"+rinfo.getcheckoutinfo()+"\');");
+		
 			newcon.close();			
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-		
+		return nextid;
 	}
+	
+	public void updateRequestInfo(RequestInfo rinfo)
+	{		
+		//can be called only by insertSubjectInfo to avoid update a non existing record
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+rinfo.getRequestid()+"\';");
+			SubjectInfo  oldsinfo=null;
+			if (rs.next())
+			{
+				//oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+				//sinfo.merge(oldsinfo);
+			}
+			rs.close();			
+			
+			stmt = newcon.createStatement();
+			stmt.execute("UPDATE requestinfo SET requestid=\'"+rinfo.getRequestid()+"\', userid=\'"+rinfo.getUserid()+"\', date=\'"+rinfo.getDate()+"\', affectedsubjects=\'"+rinfo.getaffectedsubjectstext()+"\', checkoutinfo=\'"+rinfo.getcheckoutinfo()+"\' WHERE subjectid=\'"+rinfo.getRequestid()+"\';");
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	private void updateSubjectInfo(SubjectInfo sinfo)
 	{
 		//can be called only by insertSubjectInfo to avoid update a non existing record
