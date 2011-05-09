@@ -172,17 +172,19 @@ public class DBManager extends Thread{
 		}
 		return sameSubjectIds;
 	}
+	
+	
 	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid,String userid)
 	{
 		Connection newcon = this.getConnection();
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid=\'"+subjectid+"\' AND rinfo.userid=\'"+userid+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\';");
 			while (rs.next())
 			{
 				String checkoutinfo=rs.getString("checkoutinfo");
-				System.out.println(checkoutinfo);
+				//System.out.println(checkoutinfo);
 				String[] checkouinfolist=RequestInfo.checkoutinfoParser(checkoutinfo);
 				for (String key:checkouinfolist)
 				{
@@ -206,7 +208,7 @@ public class DBManager extends Thread{
 		
 	}
 	
-	private  HashMap<String,String> mergeHashMap( HashMap<String,String> origin,  HashMap<String,String> update)
+	private  HashMap<String,String> mergeHashMap(HashMap<String,String> origin,  HashMap<String,String> update)
 	{
 		for (String key : update.keySet())
 		{
@@ -251,7 +253,7 @@ public class DBManager extends Thread{
 						else
 							updateCheckOutInfo(checkoutinfo,subjectid,checkoutinfo.get(subjectid));					
 						//search and update the same subject with different if
-						LinkedList<String> samesubjects=findSameSubjects(subjectid);
+						/*LinkedList<String> samesubjects=findSameSubjects(subjectid);
 						if (samesubjects==null) break;
 						if (samesubjects.isEmpty()) break;			
 						for (String samesubject : samesubjects)
@@ -262,7 +264,7 @@ public class DBManager extends Thread{
 								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject,userid));
 							else
 								updateCheckOutInfo(checkoutinfo,samesubject,checkoutinfo.get(samesubject));	
-						}
+						}*/
 					}
 				}
 				newcon.close();
@@ -287,12 +289,57 @@ public class DBManager extends Thread{
 			}
 			return null;	
 }
-	public void insertSubjectInfo(SubjectInfo sinfo)
+	
+	public String getSubjectID(String subjectname, String dateofbirth)
 	{
 		Connection newcon = this.getConnection();
+		String subjectid=null;
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM subjectinfo WHERE subjectid=\'"+sinfo.getSubjectid()+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo WHERE subjectname=\'"+subjectname+"\' AND dateofbirth=\'"+dateofbirth+"\';");
+			//Check if the subject is already exist
+			if (rs.next())
+			{
+				subjectid=rs.getString("subjectid");
+			}
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return subjectid;				
+	}
+	
+	public String lookupSubject(SubjectInfo sinfo)
+	{
+		Connection newcon = this.getConnection();
+		String subjectid=null;
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo WHERE subjectname=\'"+sinfo.getSubjectname()+"\' AND dateofbirth=\'"+sinfo.getDateofbirth()+"\';");
+			//Check if the subject is already exist
+			if (rs.next())
+			{
+				subjectid=rs.getString("subjectid");
+			}
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return subjectid;				
+	}
+	
+	
+	public void insertSubjectInfo(SubjectInfo sinfo)
+	{
+		
+		Connection newcon = this.getConnection();
+		String subjectid=lookupSubject(sinfo);
+		
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM subjectinfo WHERE subjectid="+subjectid+";");
 			//Check if the subject is already exist
 			if (rs.next())
 			{
@@ -306,7 +353,7 @@ public class DBManager extends Thread{
 				{
 					System.out.println("subject record not found will insert it");
 					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\');");
+					stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
 				}
 				
 			}

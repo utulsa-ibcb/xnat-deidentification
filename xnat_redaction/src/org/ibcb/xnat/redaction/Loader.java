@@ -179,8 +179,30 @@ public class Loader {
 				HashMap<String,String> subjectCheckoutInfo=overallCheckoutInfo.get(subject_id);
 				
 				// populate map of checkout fields -Liang
-				// HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
-				
+				HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
+				HashMap<String, String> filter_data = new HashMap<String,String>();
+				int checkoutCount=0;
+				for (String key:subjectCheckoutInfo.keySet())
+				{
+					if (subjectCheckoutInfo.get(key).equals(new String("1")))
+					{
+						checkoutCount++;
+						String requestName="request_"+key;
+						filter_data.put(requestName, "1");
+					}
+					
+				}
+				String phi_checked="phi_checked_out";
+				filter_data.put(phi_checked, Integer.toString(checkoutCount));
+				for (String key:requesting_user_data.keySet())
+				{
+					if (requesting_user_data.get(key).equals(new String("1")))
+					{
+						String requestName="request_"+key;
+						filter_data.put(requestName, "1");
+					}
+					
+				}
 				// Using the above data, along with req_field_names and insert resulting data into the filter_data hashmap
 				// example:
 				// user has already checked out Age previously, and is requesting to check out Race now
@@ -193,7 +215,7 @@ public class Loader {
 				// 
 				// 
 				
-				HashMap<String, String> filter_data = new HashMap<String,String>();
+				
 				// run permissions checks against checkout ruleset information
 				
 				subject.passed = true;//cr.filter(filter_data);
@@ -215,7 +237,7 @@ public class Loader {
 					
 					//Create a subject info for passed subject
 					SubjectInfo s_info=new SubjectInfo(subject.id,subject.demographics.toString(),project_id,requestId.toPlainString());
-					
+					db.insertSubjectInfo(s_info);
 					
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
