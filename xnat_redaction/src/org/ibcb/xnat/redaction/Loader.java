@@ -236,7 +236,7 @@ public class Loader {
 					
 					
 					//Create a subject info for passed subject
-					SubjectInfo s_info=new SubjectInfo(subject.id,subject.demographics.toString(),project_id,requestId.toPlainString());
+					SubjectInfo s_info=new SubjectInfo(null,subject.demographics.toString(),project_id,requestId.toPlainString());
 					db.insertSubjectInfo(s_info);
 					
 					
