@@ -322,6 +322,7 @@ public class DBManager extends Thread{
 			{
 				subjectid=rs.getString("subjectid");
 			}
+			if (rs.wasNull()) return null;
 			newcon.close();			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -336,27 +337,33 @@ public class DBManager extends Thread{
 		
 		Connection newcon = this.getConnection();
 		String subjectid=lookupSubject(sinfo);
-		
+		BigDecimal nextid = null;
+		ResultSet id_rs;
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM subjectinfo WHERE subjectid="+subjectid+";");
-			//Check if the subject is already exist
-			if (rs.next())
+			id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+			if (id_rs.next())
 			{
-				if (!(rs.getBigDecimal("count").intValue()==0))
-				{
+			nextid=id_rs.getBigDecimal("nextval");
+			//System.out.println("next id "+nextid);
+			}
+			if (subjectid==null) {
+				stmt = newcon.createStatement();
+				stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
+				return;
+			}
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	
+		try {
+			if (subjectid!=null) {
 					//use update instead
 					System.out.println("subject record already exist will update it");
 					updateSubjectInfo(sinfo);
 				}
-				else
-				{
-					System.out.println("subject record not found will insert it");
-					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
-				}
-				
-			}
+			
 			newcon.close();			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

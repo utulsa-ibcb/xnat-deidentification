@@ -23,6 +23,8 @@ public class Test {
 		System.out.println("try to insert subject info record002");
 		SubjectInfo s2info=new SubjectInfo("2","PatientName,Liang;PatientAge,99;","testproject","testrequest002;","Richard","06/16/10");
 		singlethreadtest.insertSubjectInfo(s2info);
+		SubjectInfo s3info=new SubjectInfo("3","PatientName,Liang;PatientAge,99;","testproject","testrequest002;","Richard","06/16/10");
+		singlethreadtest.insertSubjectInfo(s3info);
 		System.out.println("try to insert request info record");
 		RequestInfo r1info=new RequestInfo("testuser1","2011-1-23","admin","1;","PatientName;PatientAge;StudyDate;");
 		singlethreadtest.insertRequestInfo(r1info);
