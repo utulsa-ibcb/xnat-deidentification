@@ -1,5 +1,6 @@
 package org.ibcb.xnat.redaction.database;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -20,20 +21,37 @@ public class DBManager extends Thread{
 	public static final int UPDATE_SUBJECTINFO=3;
 	public int type_of_work=0;
 	protected Statement stmt;
+	String hostname="localhost";
 	static 
 	{
 		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
 		datasource.setDataSourceName("A Pooling Source");
-		datasource.setServerName("localhost");
-		datasource.setDatabaseName("PrivacyDB");
+		datasource.setServerName("");
+		datasource.setDatabaseName("privacydb");
 		datasource.setUser("xnat");
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 		
 	}
+	public DBManager(int type_of_work,String Hostname)
+	{
+		this.hostname=Hostname;
+		datasource.setServerName(hostname);
+		this.type_of_work=type_of_work;
+		Initializer();
+
+	}
 	public DBManager(int type_of_work)
 	{
+		datasource.setServerName(hostname);
 		this.type_of_work=type_of_work;
+		Initializer();
+
+	}
+	public DBManager()
+	{
+		type_of_work=SINGLE_THREAD;
+		datasource.setServerName(hostname);
 		Initializer();
 	}
 	private void Initializer()
@@ -73,7 +91,7 @@ public class DBManager extends Thread{
 		return con;
 	}
 
-	public String[] findSameSubjects(String subjectId)
+	public LinkedList<String> findSameSubjects(String subjectId)
 	{
 		String[] sameSubjects=null;
 		LinkedList<String> sameSubjectIds=new LinkedList<String>();
@@ -94,7 +112,8 @@ public class DBManager extends Thread{
 				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
 				if (phidatamap.containsKey("PatientName"))
 				{
-					PatientName=phidatamap.get("PatientName");					
+					PatientName=phidatamap.get("PatientName");	
+					//System.out.println("search for name:"+PatientName);
 					if (phidatamap.containsKey("PatientBirthdate"))
 						PatientBirthdate=phidatamap.get("PatientBirthdate");
 					if (phidatamap.containsKey("PatientAge"))
@@ -103,47 +122,42 @@ public class DBManager extends Thread{
 						xnat_dob=phidatamap.get("xnat:dob");
 					if (phidatamap.containsKey("xnat:age"))
 						xnat_age=phidatamap.get("xnat:age");
+					newcon=this.getConnection();
 					stmt = newcon.createStatement();
-					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'"+PatientName+"\' ;");
+					ResultSet findSame=stmt.executeQuery("SELECT subjectid, phidata FROM subjectinfo WHERE phidata like \'%"+PatientName+"%\' AND subjectid<>\'"+subjectId+"\' ;");
 					while (findSame.next())
 					{
+						//System.out.println("find subjects with same name");
 						String tmpPhidata=findSame.getString("phidata");
 						HashMap<String,String> tmpPhidataMap=SubjectInfo.transphiMap(tmpPhidata);
-						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate==tmpPhidataMap.get("PatientBirthdate")))
+						if (phidatamap.containsKey("PatientBirthdate") && (PatientBirthdate.equals(tmpPhidataMap.get("PatientBirthdate"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
+							break;
+							}	
+						if (phidatamap.containsKey("PatientAge") && (PatientAge.equals(tmpPhidataMap.get("PatientAge"))))
+							{
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}
-						if (phidatamap.containsKey("PatientAge") && (PatientAge==tmpPhidataMap.get("PatientAge")))
+						if (phidatamap.containsKey("xnat:dob") && (xnat_dob.equals(tmpPhidataMap.get("xnat:dob"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}
-						if (phidatamap.containsKey("xnat:dob") && (xnat_dob==tmpPhidataMap.get("xnat:dob")))
+						if (phidatamap.containsKey("xnat:age") && (xnat_age.equals(tmpPhidataMap.get("xnat:age"))))
 							{
-							sameSubjectIds.add(rs.getString("subjectid"));
-							break;
-							}
-						if (phidatamap.containsKey("xnat:age") && (xnat_age==tmpPhidataMap.get("xnat:age")))
-							{
-							sameSubjectIds.add(rs.getString("subjectid"));
+							sameSubjectIds.add(findSame.getString("subjectid"));
 							break;
 							}						
 					}
-					sameSubjects=new String[sameSubjects.length];
-					int i=0;
-					for (String id:sameSubjectIds)
-					{
-						sameSubjects[i]=id;
-						i++;
-					}
 					newcon.close();
-					return sameSubjects;
+					return sameSubjectIds;
 				}
 				else
 				{
 					newcon.close();
-					return sameSubjects;
+					return sameSubjectIds;
 				}
 					
 			}
@@ -156,21 +170,26 @@ public class DBManager extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return sameSubjects;
+		return sameSubjectIds;
 	}
-	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid)
+	
+	
+	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid,String userid)
 	{
 		Connection newcon = this.getConnection();
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\';");
 			while (rs.next())
 			{
-				String phidata=rs.getString("phidata");
-				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
-				for (String key:phidatamap.keySet())
+				String checkoutinfo=rs.getString("checkoutinfo");
+				//System.out.println(checkoutinfo);
+				String[] checkouinfolist=RequestInfo.checkoutinfoParser(checkoutinfo);
+				for (String key:checkouinfolist)
 				{
+					//System.out.println("Checked out fields "+key+" for "+subjectid+" by "+userid);
+					if (!checkoutMap.containsKey(key))
 					checkoutMap.put(key, "1");
 				}
 			}
@@ -188,28 +207,23 @@ public class DBManager extends Thread{
 		
 		
 	}
-	public void updateSubjectCheckOutInfo(String subjectid,HashMap<String,String> checkoutMap)
+	
+	private  HashMap<String,String> mergeHashMap(HashMap<String,String> origin,  HashMap<String,String> update)
 	{
-		Connection newcon = null;
-		try {
-			newcon = datasource.getConnection();
-			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT phidata FROM subjectinfo WHERE subjectid=\'"+subjectid+"\';");
-			while (rs.next())
-			{
-				String phidata=rs.getString("phidata");
-				HashMap<String,String> phidatamap=SubjectInfo.transphiMap(phidata);
-				for (String key:phidatamap.keySet())
-				{
-					if (!checkoutMap.containsKey(key))
-					checkoutMap.put(key, "1");
-				}
-			}
-			newcon.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+		for (String key : update.keySet())
+		{
+			if (!origin.containsKey(key))
+			origin.put(key, update.get(key));
+		}
+		return origin;		
+	}
+	
+	private void updateCheckOutInfo(HashMap<String,HashMap<String,String>> 	checkoutinfo, String subjectid, HashMap<String,String> update )
+	{
+		HashMap<String,String> origin=checkoutinfo.get(subjectid);
+		origin=mergeHashMap(origin,update);
+		checkoutinfo.remove(subjectid);
+		checkoutinfo.put(subjectid, origin);
 	}
 	
 	public HashMap<String,HashMap<String,String>> getUserCheckOutInfo(String userid)
@@ -218,21 +232,14 @@ public class DBManager extends Thread{
 		try {
 			newcon = datasource.getConnection();
 			HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
-			RequestInfo[] newinfo = null;
+			LinkedList<RequestInfo> newinfo = new LinkedList<RequestInfo>();
 			//Find the associated userids
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");
-				if (rs.next())
-				{
-					rs.last();
-					int rowCount = rs.getRow();	
-					rs.first();
-					newinfo=new RequestInfo[rowCount];
-				}
-				int i=0;
+				//rs.getBigDecimal("");
 				while(rs.next())
-				{		
-					newinfo[i]=new RequestInfo(rs.getString("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"));
+				{				
+					newinfo.add(new RequestInfo(rs.getBigDecimal("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"),rs.getString("checkoutinfo")));
 				}
 				//for all the requests the user had
 				for (RequestInfo info:newinfo)
@@ -242,23 +249,34 @@ public class DBManager extends Thread{
 					{
 						//update the checkou map for this subject id
 						if (!checkoutinfo.containsKey(subjectid))
-							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid));
+							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid,userid));
 						else
-							updateSubjectCheckOutInfo(subjectid,checkoutinfo.get(subjectid));					
+							updateCheckOutInfo(checkoutinfo,subjectid,checkoutinfo.get(subjectid));					
 						//search and update the same subject with different if
-						String[] samesubjects=findSameSubjects(subjectid);
+						/*LinkedList<String> samesubjects=findSameSubjects(subjectid);
 						if (samesubjects==null) break;
-						if (samesubjects.length==0) break;			
+						if (samesubjects.isEmpty()) break;			
 						for (String samesubject : samesubjects)
 						{
+							System.out.println("same subject "+samesubject+" for "+subjectid);
+							updateCheckOutInfo(checkoutinfo,subjectid, getSubjectCheckOutInfo(samesubject,userid));
 							if (!checkoutinfo.containsKey(samesubject))
-								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject));
+								checkoutinfo.put(samesubject, getSubjectCheckOutInfo(samesubject,userid));
 							else
-								updateSubjectCheckOutInfo(samesubject,checkoutinfo.get(samesubject));					
-						}
+								updateCheckOutInfo(checkoutinfo,samesubject,checkoutinfo.get(samesubject));	
+						}*/
 					}
 				}
 				newcon.close();
+				//out put the checkoutinfo
+				for (String subject : checkoutinfo.keySet())
+				{
+					System.out.println("For subject:"+subject);
+					for (String key : checkoutinfo.get(subject).keySet())
+					{
+						System.out.println("key = "+key+" value = "+checkoutinfo.get(subject).get(key));
+					}		
+				}
 				return checkoutinfo;
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -271,56 +289,135 @@ public class DBManager extends Thread{
 			}
 			return null;	
 }
-	public void insertSubjectInfo(SubjectInfo sinfo)
+	
+	public String getSubjectID(String subjectname, String dateofbirth)
 	{
 		Connection newcon = this.getConnection();
+		String subjectid=null;
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM subjectinfo WHERE subjectid=\'"+sinfo.getSubjectid()+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo WHERE subjectname=\'"+subjectname+"\' AND dateofbirth=\'"+dateofbirth+"\';");
 			//Check if the subject is already exist
 			if (rs.next())
 			{
-				if (!(rs.getBigDecimal("count").intValue()==0))
-				{
-					//use update instead
-					System.out.println("subject record already exist will update it");
-					updateSubjectInfo(sinfo);
-				}
-				else
-				{
-					System.out.println("subject record not found will insert it");
-					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids)  VALUES (\'"+sinfo.getSubjectid()+"\', \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\');");
-				}
-				
+				subjectid=rs.getString("subjectid");
 			}
 			newcon.close();			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return subjectid;				
 	}
-	public void insertRequestInfo(RequestInfo rinfo)
-	{		
+	
+	public String lookupSubject(SubjectInfo sinfo)
+	{
 		Connection newcon = this.getConnection();
+		String subjectid=null;
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT count(*) as count FROM requestinfo WHERE requestid=\'"+rinfo.getRequestid()+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo WHERE subjectname=\'"+sinfo.getSubjectname()+"\' AND dateofbirth=\'"+sinfo.getDateofbirth()+"\';");
+			//Check if the subject is already exist
 			if (rs.next())
 			{
-				if (rs.getBigDecimal("count").intValue()==0)
-				{
-					stmt = newcon.createStatement();
-					stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects) VALUES(\'"+rinfo.getRequestid()+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\');");
-				}
+				subjectid=rs.getString("subjectid");
 			}
+			if (rs.wasNull()) return null;
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return subjectid;				
+	}
+	
+	
+	public void insertSubjectInfo(SubjectInfo sinfo)
+	{
+		
+		Connection newcon = this.getConnection();
+		String subjectid=lookupSubject(sinfo);
+		BigDecimal nextid = null;
+		ResultSet id_rs;
+		try {
+			stmt = newcon.createStatement();
+			id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+			if (id_rs.next())
+			{
+			nextid=id_rs.getBigDecimal("nextval");
+			//System.out.println("next id "+nextid);
+			}
+			if (subjectid==null) {
+				stmt = newcon.createStatement();
+				stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
+				return;
+			}
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	
+		try {
+			if (subjectid!=null) {
+					//use update instead
+					System.out.println("subject record already exist will update it");
+					updateSubjectInfo(sinfo);
+				}
+			
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public BigDecimal insertRequestInfo(RequestInfo rinfo)
+	{		
+		BigDecimal nextid = null;
+		Connection newcon = this.getConnection();
+		try {		
+			stmt = newcon.createStatement();
+			ResultSet id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+			if (id_rs.next())
+			{
+				nextid=id_rs.getBigDecimal("nextval");
+				//System.out.println("next id "+nextid);
+			}	
+			stmt = newcon.createStatement();	
+			stmt = newcon.createStatement();
+			stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects,checkoutinfo) VALUES(\'"+nextid+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\',\'"+rinfo.getcheckoutinfo()+"\');");
+		
 			newcon.close();			
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-		
+		return nextid;
 	}
+	
+	public void updateRequestInfo(RequestInfo rinfo)
+	{		
+		//can be called only by insertSubjectInfo to avoid update a non existing record
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+rinfo.getRequestid()+"\';");
+			SubjectInfo  oldsinfo=null;
+			if (rs.next())
+			{
+				//oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+				//sinfo.merge(oldsinfo);
+			}
+			rs.close();			
+			
+			stmt = newcon.createStatement();
+			stmt.execute("UPDATE requestinfo SET requestid=\'"+rinfo.getRequestid()+"\', userid=\'"+rinfo.getUserid()+"\', date=\'"+rinfo.getDate()+"\', affectedsubjects=\'"+rinfo.getaffectedsubjectstext()+"\', checkoutinfo=\'"+rinfo.getcheckoutinfo()+"\' WHERE subjectid=\'"+rinfo.getRequestid()+"\';");
+			newcon.close();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	private void updateSubjectInfo(SubjectInfo sinfo)
 	{
 		//can be called only by insertSubjectInfo to avoid update a non existing record

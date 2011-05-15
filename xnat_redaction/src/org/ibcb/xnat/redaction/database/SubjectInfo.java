@@ -11,7 +11,8 @@ public class SubjectInfo {
 	private String phidata;
 	private String[] requestids;
 	private String projectid;
-	
+	private String subjectname;
+	private String dateofbirth;
 	
 	public SubjectInfo(String sub,String phi,String proj,String[] req)
 	{
@@ -27,6 +28,25 @@ public class SubjectInfo {
 		this.requestids=requestidParser(req);
 		this.projectid=proj;
 		this.phidata=phi;
+	}
+	public SubjectInfo(String sub,String phi,String proj,String[] req,String name, String dateofbirth)
+	{
+		this.subjectid=sub;
+		this.requestids=req;
+		this.projectid=proj;
+		this.phidata=phi;
+		this.subjectname=name;
+		this.dateofbirth=dateofbirth;
+	}
+	
+	public SubjectInfo(String sub,String phi,String proj,String req,String name, String dateofbirth)
+	{
+		this.subjectid=sub;
+		this.requestids=requestidParser(req);
+		this.projectid=proj;
+		this.phidata=phi;
+		this.subjectname=name;
+		this.dateofbirth=dateofbirth;
 	}
 	public String getSubjectid() {
 		return subjectid;
@@ -85,6 +105,19 @@ public class SubjectInfo {
 			
 		return phimap;
 	}
+	
+	public String getSubjectname()
+	{return subjectname;}
+	public String getDateofbirth()
+	{return dateofbirth;}
+	public void setSubjectname(String name)
+	{this.subjectname=name;}
+	public void setDateofbirth(String Dateofbirth)
+	{this.dateofbirth=Dateofbirth;}
+	
+	
+	
+	
 	public String[] getRequestid() {
 		return requestids;
 	}

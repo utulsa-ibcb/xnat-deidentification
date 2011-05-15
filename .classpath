@@ -41,6 +41,5 @@
 	<classpathentry kind="lib" path="xnat_redaction/lib/slf4j-log4j12-1.6.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/kong/workspace/xnat-deidentification/postgresql/postgresql-9.0-801.jdbc3.jar"/>
-	<classpathentry kind="lib" path="/home/kong/workspace/xnat-deidentification/postgresql/postgresql-9.0-801.jdbc4.jar"/>
 	<classpathentry kind="output" path="xnat_redaction/bin"/>
 </classpath>
