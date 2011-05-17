@@ -55,6 +55,7 @@ public class CheckoutRuleset {
 	private static final int COND_MODE_IP = 4;
 	private static final int COND_MODE_NUMRANGE = 5;
 	private static final int COND_MODE_NUM = 6;
+	private static final int COND_MODE_COMPARE_INTEGER = 6;
 	
 	private static final int OR_OP = 0;
 	private static final int AND_OP = 1;
@@ -253,6 +254,7 @@ public class CheckoutRuleset {
 		Pattern regex;				// Precompiled java regular expression
 		boolean neg;
 		
+		int comparison;
 		int mode = COND_MODE_NONE;
 		
 		long l;
@@ -271,6 +273,20 @@ public class CheckoutRuleset {
 				Matcher mat = regex.matcher(fields.get(field));
 				boolean b1 = neg ? !mat.matches() : mat.matches();
 				if(DEBUG) System.out.println(fields.get(field) + (neg ? " =/> " : " => ") + regex.toString() + " = " + b1);
+				return b1;
+			}
+			else if(mode==COND_MODE_COMPARE_INTEGER){
+				Long val = Long.parseLong(fields.get(field));
+				
+				boolean b1=true;
+				if(comparison == -1)
+					b1 = val < l;
+				else if(comparison==1)
+					b1 = val > l;
+				
+				b1 = neg ? !b1 : b1;
+				
+				if(DEBUG) System.out.println((neg ? "~" : "") + "( " + val  + (comparison==-1 ? " < " : " > ") + l + " ) = " + b1);	
 				return b1;
 			}
 			else if(mode==COND_MODE_CIDR){
@@ -319,6 +335,9 @@ public class CheckoutRuleset {
 			
 			if(mode==COND_MODE_REGEX)
 				return  prefix + '"' + '@' + regex.toString() + '"';
+			else if(mode==COND_MODE_COMPARE_INTEGER){
+				return prefix + '"' + (comparison==-1 ? "<" : ">") + (l) + '"';
+			}
 			else if(mode==COND_MODE_CIDR){
 				return prefix + '"' + translateIP(l) + "/" + bitmask_len + '"';
 			}
@@ -1564,6 +1583,14 @@ public class CheckoutRuleset {
 					c.regex = Pattern.compile(literal.substring(1, literal.length()));
 				}catch(PatternSyntaxException e){
 					throw new CompileException("Pattern Syntax Exception in Regex: " + e.getMessage());
+				}
+			}
+			else if(literal.charAt(0) == '>' || literal.charAt(0) == '<'){
+				c.mode = COND_MODE_COMPARE_INTEGER;		
+				try{
+					c.l = Long.parseLong(literal.substring(1));
+				}catch(Exception e){
+					throw new CompileException("Bad number format for comparison condition");
 				}
 			}
 			else if(literal.contains(".") && literal.contains("/")){
