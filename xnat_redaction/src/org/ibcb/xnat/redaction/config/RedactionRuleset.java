@@ -38,7 +38,7 @@ public class RedactionRuleset {
 			}
 		}
 		
-		return field;
+		return fields;
 		
 	}
 	
