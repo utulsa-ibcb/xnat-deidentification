@@ -18,6 +18,8 @@ public class XNATSubject {
 	
 	public String id;
 	
+	public String newLabel;
+	
 	String subject_xml;
 	boolean generated = false;	
 	public String destination_id;
@@ -29,6 +31,10 @@ public class XNATSubject {
 	
 	public HashMap<String, LinkedList<String>> scan_ids = new HashMap<String, LinkedList<String>>();
 	public HashMap<String, XNATScan> scans = new HashMap<String, XNATScan>();
+	
+	public void setNewLabel(String nLabel){
+		newLabel=nLabel;
+	}
 	
 	public String extractXML(String project_id){
 		if(generated) return subject_xml;
@@ -47,6 +53,8 @@ public class XNATSubject {
 		 			subject_xml += " " + name + "=\"\"";
 		 		else if(name.equalsIgnoreCase("project"))
 		 			subject_xml += " " + name + "=\""+project_id+"\"";
+		 		else if(name.equalsIgnoreCase("label"))
+		 			subject_xml += " " + name + "=\""+newLabel+"\"";
 		 		else
 		 			subject_xml += " " + name + "=\""+value+"\"";
 		 	}
