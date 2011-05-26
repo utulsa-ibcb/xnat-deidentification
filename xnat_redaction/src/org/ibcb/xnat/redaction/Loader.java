@@ -179,7 +179,7 @@ public class Loader {
 				HashMap<String,String> subjectCheckoutInfo=overallCheckoutInfo.get(subject_id);
 				
 				// populate map of checkout fields -Liang
-				HashMap<String, String> requesting_user_data = Checkout.instance().getRequestingUserData(co_user_id, subject_id);
+				HashMap<String, String> requesting_user_data = subjectCheckoutInfo;
 				HashMap<String, String> filter_data = new HashMap<String,String>();
 				int checkoutCount=0;
 				for (String key:subjectCheckoutInfo.keySet())
@@ -231,10 +231,7 @@ public class Loader {
 				
 				// upload subject information -Matt
 				if(subject.passed){
-					
-					
-					
-					
+				
 					//Create a subject info for passed subject
 					SubjectInfo s_info=new SubjectInfo(null,subject.demographics.toString(),project_id,requestId.toPlainString());
 					db.insertSubjectInfo(s_info);
