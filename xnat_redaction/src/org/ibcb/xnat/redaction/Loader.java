@@ -97,6 +97,7 @@ public class Loader {
 			
 			// load checkout ruleset and checkout system
 			CheckoutRuleset cr = new CheckoutRuleset();
+			cr.setFields(Configuration.instance().getProperty("filter_fields").split(","));
 			cr.loadRuleSet(Configuration.instance().getProperty("checkout_rules"));
 			
 			Checkout.instance().initialize();
@@ -132,9 +133,9 @@ public class Loader {
 				
 				// download subject information and redact
 				Checkout.instance().downloadSubjectXML(project, subject_id);
-				// Checkout.instance().downloadSubjectFiles(project, subject_id);
+				Checkout.instance().downloadSubjectFiles(project, subject_id);
 				// redact XNATSubject demographics
-			
+				
 				XNATSubject subject = project.subjects.get(subject_id);
 				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true, ruleset);
 				
@@ -146,6 +147,8 @@ public class Loader {
 						XNATScan scan = subject.scans.get(scan_id);
 						for(String file : scan.localFiles){
 							String input = scan.tmp_folder+"/"+file;
+							
+							System.out.println("Processing: " + input);
 							
 							DicomObject obj = dext.loadDicom(input);
 							
@@ -169,8 +172,8 @@ public class Loader {
 							String nfilename = scan.tmp_folder+"/redacted/"+file;
 							dext.writeDicom(nfilename, obj);
 							
-//								DicomObject obj2_test = dext.loadDicom(nfilename);							
-//								hs = dext.extractNameValuePairs(obj2_test, ruleset);
+//							DicomObject obj2_test = dext.loadDicom(nfilename);							
+//							hs = dext.extractNameValuePairs(obj2_test, ruleset);
 						}
 					}
 				}
@@ -192,6 +195,15 @@ public class Loader {
 					}
 					
 				}
+				for (String field :ruleset.getFieldNames())
+				{
+					if (!subjectCheckoutInfo.containsKey(field))
+					{
+						String requestName="request_"+field;
+						filter_data.put(requestName, "0");
+						
+					}	
+				}
 				String phi_checked="phi_checked_out";
 				filter_data.put(phi_checked, Integer.toString(checkoutCount));
 				for (String key:requesting_user_data.keySet())
@@ -203,6 +215,7 @@ public class Loader {
 					}
 					
 				}
+				
 				// Using the above data, along with req_field_names and insert resulting data into the filter_data hashmap
 				// example:
 				// user has already checked out Age previously, and is requesting to check out Race now
@@ -231,10 +244,9 @@ public class Loader {
 				
 				// upload subject information -Matt
 				if(subject.passed){
-				
 					//Create a subject info for passed subject
-					SubjectInfo s_info=new SubjectInfo(null,subject.demographics.toString(),project_id,requestId.toPlainString());
-					db.insertSubjectInfo(s_info);
+//					SubjectInfo s_info=new SubjectInfo(null,subject.demographics.toString(),project_id,requestId.toPlainString());
+//					db.insertSubjectInfo(s_info);
 					
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			

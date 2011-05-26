@@ -29,6 +29,19 @@ public class RedactionRuleset {
 	
 	private LinkedList<Rule> ruleset;
 	
+	public LinkedList<String> getFieldNames(){
+		LinkedList<String> fields = new LinkedList<String>();
+		
+		for(Rule r : ruleset){
+			if(!fields.contains(r.field)){
+				fields.add(r.field);
+			}
+		}
+		
+		return fields;
+		
+	}
+	
 	private int getOperationId(String op){
 		if(op.toLowerCase().equals("timelapse"))
 			return OP_ELAPSED_TIME;

@@ -177,7 +177,7 @@ public class XNATRestAPI {
 		try{
 			String scan_xml = scan.extractXML(project.id, subject.destination_id, experiment.destination_id);
 			
-			System.out.println("POSTing: " + scan_xml);
+//			System.out.println("POSTing: " + scan_xml);
 			
 			return postREST(query, scan_xml);
 		}catch(Exception e){
@@ -610,8 +610,11 @@ public class XNATRestAPI {
     public void uploadDICOMFiles(XNATProject project, XNATSubject subject, XNATExperiment experiment, XNATScan scan){
     	
     	for(String localFile : scan.localFiles){
+    		
     		String destination = url+"/REST/projects/"+project.id+"/subjects/"+subject.destination_id+"/experiments/"+experiment.destination_id+"/scans/"+scan.destination_id+"/files/"+localFile+"?inbody=true";
-    		String filename = scan.tmp_folder + "/" + localFile;
+    		String filename = scan.tmp_folder + "/redacted/" + localFile;
+    		
+    		System.out.println("Uploading Scan file: " + filename);
     		try{
     			System.out.println("POSTing: " + localFile + " to: " + destination);
     			postFile(destination, filename);
