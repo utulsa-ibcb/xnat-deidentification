@@ -123,8 +123,10 @@ public class Loader {
 			//init a new request
 			Date dt=new Date();
 			//leave affected subjectids blank for now
+			System.out.println("check out field "+request_fields);
 			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",request_fields);
-			BigDecimal requestId=db.insertRequestInfo(r_info);
+			BigDecimal requestId=db.getNextRequestID();
+			r_info.setRequestid(requestId);
 			HashMap<String,HashMap<String,String>> overallCheckoutInfo=db.getUserCheckOutInfo(co_user_id);
 			
 			
@@ -147,34 +149,49 @@ public class Loader {
 						XNATScan scan = subject.scans.get(scan_id);
 						for(String file : scan.localFiles){
 							String input = scan.tmp_folder+"/"+file;
+							File f = new File(input);
 							
-							System.out.println("Processing: " + input);
-							
-							DicomObject obj = dext.loadDicom(input);
-							
-							HashMap<String,String> hs = dext.extractNameValuePairs(obj, ruleset, req_field_names);
-							
-							// Store hs data in dicom map
-							
-							for(String key : hs.keySet()){
-								String val = hs.get(key);
+							if(f.isFile() && f.getName().endsWith("dcm")){
+								System.out.println("Processing: " + input);
 								
-								if(!dicom_demographics.containsKey(key))
-									dicom_demographics.put(key, new LinkedList<String>());
-								if(!dicom_demographics.get(key).contains(val))
-									dicom_demographics.get(key).add(val);
+								DicomObject obj = dext.loadDicom(input);
+								
+								HashMap<String,String> hs = dext.extractNameValuePairs(obj, ruleset, req_field_names);
+								
+								// Store hs data in dicom map
+								
+								for(String key : hs.keySet()){
+									String val = hs.get(key);
+									
+									if(!dicom_demographics.containsKey(key))
+										dicom_demographics.put(key, new LinkedList<String>());
+									if(!dicom_demographics.get(key).contains(val))
+										dicom_demographics.get(key).add(val);
+								}
+								
+								File dir = new File(scan.tmp_folder+"/redacted");
+								if(!dir.exists()){
+									dir.mkdirs();
+								}
+								String nfilename = scan.tmp_folder+"/redacted/"+file;
+								dext.writeDicom(nfilename, obj);
+								
+	//							DicomObject obj2_test = dext.loadDicom(nfilename);							
+	//							hs = dext.extractNameValuePairs(obj2_test, ruleset);
 							}
-							
-							File dir = new File(scan.tmp_folder+"/redacted");
-							if(!dir.exists()){
-								dir.mkdirs();
-							}
-							String nfilename = scan.tmp_folder+"/redacted/"+file;
-							dext.writeDicom(nfilename, obj);
-							
-//							DicomObject obj2_test = dext.loadDicom(nfilename);							
-//							hs = dext.extractNameValuePairs(obj2_test, ruleset);
 						}
+					}
+				}
+				
+				HashMap<String, String> combined_demographics = new HashMap<String, String>();
+				
+				for(String key : xnat_demographics.keySet()){
+					combined_demographics.put(key, xnat_demographics.get(key));
+				}
+				
+				for(String key : dicom_demographics.keySet()){
+					if(!combined_demographics.containsKey(key)){
+						combined_demographics.put(key, dicom_demographics.get(key).getFirst());
 					}
 				}
 				
@@ -185,35 +202,33 @@ public class Loader {
 				HashMap<String, String> requesting_user_data = subjectCheckoutInfo;
 				HashMap<String, String> filter_data = new HashMap<String,String>();
 				int checkoutCount=0;
-				for (String key:subjectCheckoutInfo.keySet())
-				{
-					if (subjectCheckoutInfo.get(key).equals(new String("1")))
-					{
-						checkoutCount++;
-						String requestName="request_"+key;
-						filter_data.put(requestName, "1");
-					}
-					
-				}
 				for (String field :ruleset.getFieldNames())
 				{
-					if (!subjectCheckoutInfo.containsKey(field))
-					{
 						String requestName="request_"+field;
-						filter_data.put(requestName, "0");
-						
-					}	
+						filter_data.put(requestName, "0");						
 				}
-				String phi_checked="phi_checked_out";
-				filter_data.put(phi_checked, Integer.toString(checkoutCount));
-				for (String key:requesting_user_data.keySet())
-				{
-					if (requesting_user_data.get(key).equals(new String("1")))
+				
+				if (subjectCheckoutInfo!=null){
+					for (String key:subjectCheckoutInfo.keySet())
 					{
-						String requestName="request_"+key;
-						filter_data.put(requestName, "1");
+						if (subjectCheckoutInfo.get(key).equals(new String("1")))
+						{
+							checkoutCount++;
+							String requestName="request_"+key;
+							filter_data.put(requestName, "1");
+						}					
 					}
-					
+					String phi_checked="phi_checked_out";
+					filter_data.put(phi_checked, Integer.toString(checkoutCount));
+					for (String key:requesting_user_data.keySet())
+					{
+						if (requesting_user_data.get(key).equals(new String("1")))
+						{
+							String requestName="request_"+key;
+							filter_data.put(requestName, "1");
+						}
+						
+					}
 				}
 				
 				// Using the above data, along with req_field_names and insert resulting data into the filter_data hashmap
@@ -245,9 +260,18 @@ public class Loader {
 				// upload subject information -Matt
 				if(subject.passed){
 					//Create a subject info for passed subject
-//					SubjectInfo s_info=new SubjectInfo(null,subject.demographics.toString(),project_id,requestId.toPlainString());
-//					db.insertSubjectInfo(s_info);
-					
+					String req_ID=requestId.toPlainString()+";";
+					SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(combined_demographics),project_id,req_ID,combined_demographics.get("PatientName"),combined_demographics.get("PatientBirthdate"));
+					//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());
+					String db_subjectid=db.insertSubjectInfo(s_info);				
+					subject.setNewLabel(db_subjectid);
+					//System.out.println("new id "+db_subjectid);
+					if (db_subjectid!=null)
+					{
+						String newAffectedIDs=r_info.getaffectedsubjectstext()+db_subjectid+";";
+						r_info.setaffectedsubjects(newAffectedIDs);
+					}
+
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
 					for(String field : req_field_names){
@@ -285,6 +309,7 @@ public class Loader {
 					}
 				}
 			}
+			db.insertRequestInfo(r_info);
 		}catch(PipelineServiceException pse){
 			pse.printStackTrace();
 			

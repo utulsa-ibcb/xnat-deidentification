@@ -74,10 +74,13 @@ public class RequestInfo {
 	public String getaffectedsubjectstext()
 	{
 		String subjects = "";
+		if (this.affectedsubjects!=null)
 		for (String subject:this.affectedsubjects)
 		{
 			subjects=subjects+subject+";";			
 		}
+		else
+			return "";
 		return subjects;
 	}
 	public void setaffectedsubjects(String subjectids)
@@ -108,7 +111,10 @@ public class RequestInfo {
 	{
 		return this.checkoutinfoParser(this.checkoutinfo);		
 	}
-	
+	public void merge(RequestInfo oldrinfo)
+	{
+		
+	}
 	
 	public static String[] checkoutinfoParser(String cinfo)
 	{

@@ -658,7 +658,7 @@ public class XNATRestAPI {
 			if(file.getName().equals("files.zip")){
 				file.delete();
 			}
-			else{
+			else if(file.isFile()){
 				scan.localFiles.add(file.getName());
 			}
 		}

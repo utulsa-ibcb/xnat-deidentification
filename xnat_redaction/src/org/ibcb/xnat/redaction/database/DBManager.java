@@ -245,6 +245,7 @@ public class DBManager extends Thread{
 				for (RequestInfo info:newinfo)
 				{
 					//for all the subjects in this request
+					if (info.getaffectedsubjects()!=null)
 					for (String subjectid:info.getaffectedsubjects())	
 					{
 						//update the checkou map for this subject id
@@ -332,7 +333,7 @@ public class DBManager extends Thread{
 	}
 	
 	
-	public void insertSubjectInfo(SubjectInfo sinfo)
+	public String insertSubjectInfo(SubjectInfo sinfo)
 	{
 		
 		Connection newcon = this.getConnection();
@@ -345,12 +346,13 @@ public class DBManager extends Thread{
 			if (id_rs.next())
 			{
 			nextid=id_rs.getBigDecimal("nextval");
-			//System.out.println("next id "+nextid);
+			System.out.println("VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
 			}
 			if (subjectid==null) {
 				stmt = newcon.createStatement();
 				stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
-				return;
+				newcon.close();		
+				return nextid.toString();
 			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
@@ -361,28 +363,53 @@ public class DBManager extends Thread{
 			if (subjectid!=null) {
 					//use update instead
 					System.out.println("subject record already exist will update it");
+					sinfo.setSubjectid(subjectid);
 					updateSubjectInfo(sinfo);
-				}
-			
-			newcon.close();			
+					newcon.close();		
+					return subjectid;
+				}				
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return null;
+	}
+	public BigDecimal getNextRequestID()
+	{		
+			BigDecimal nextid = null;
+			Connection newcon = this.getConnection();
+			try {	
+					stmt = newcon.createStatement();
+					ResultSet id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+					if (id_rs.next())
+					{
+						nextid=id_rs.getBigDecimal("nextval");
+						//System.out.println("next id "+nextid);
+					}	
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		return nextid;		
 	}
 	public BigDecimal insertRequestInfo(RequestInfo rinfo)
 	{		
 		BigDecimal nextid = null;
 		Connection newcon = this.getConnection();
-		try {		
-			stmt = newcon.createStatement();
-			ResultSet id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
-			if (id_rs.next())
+		try {	
+			if (rinfo.getRequestid()==null)
 			{
-				nextid=id_rs.getBigDecimal("nextval");
-				//System.out.println("next id "+nextid);
-			}	
-			stmt = newcon.createStatement();	
+				stmt = newcon.createStatement();
+				ResultSet id_rs = stmt.executeQuery("SELECT nextval('next_requestid')");
+				if (id_rs.next())
+				{
+					nextid=id_rs.getBigDecimal("nextval");
+					//System.out.println("next id "+nextid);
+				}	
+			}
+			else
+				nextid=rinfo.getRequestid();
 			stmt = newcon.createStatement();
 			stmt.execute("INSERT INTO requestinfo (requestid, userid, date, adminid, affectedsubjects,checkoutinfo) VALUES(\'"+nextid+"\',\'"+rinfo.getUserid()+"\',\'"+rinfo.getDate()+"\',\'"+rinfo.getAdminid()+"\',\'"+rinfo.getaffectedsubjectstext()+"\',\'"+rinfo.getcheckoutinfo()+"\');");
 		
@@ -394,17 +421,18 @@ public class DBManager extends Thread{
 		return nextid;
 	}
 	
-	public void updateRequestInfo(RequestInfo rinfo)
+	/*public void updateRequestInfo(RequestInfo rinfo)
 	{		
 		//can be called only by insertSubjectInfo to avoid update a non existing record
 		Connection newcon = this.getConnection();
 		try {
 			stmt = newcon.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM subjectinfo WHERE subjectid=\'"+rinfo.getRequestid()+"\';");
-			SubjectInfo  oldsinfo=null;
+			RequestInfo  oldrinfo=null;
 			if (rs.next())
 			{
-				//oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+				//public RequestInfo(BigDecimal requestid,String userid,String date,String adminid,String subjectids,String cinfo)
+				oldrinfo=new RequestInfo(rs.getBigDecimal("requestid"),rs.getString("userid"),rs.getString("date"),rs.getString("adminid"),rs.getString("affectedsubjects"),rs.getString("checkoutinfo"));
 				//sinfo.merge(oldsinfo);
 			}
 			rs.close();			
@@ -416,7 +444,7 @@ public class DBManager extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	private void updateSubjectInfo(SubjectInfo sinfo)
 	{

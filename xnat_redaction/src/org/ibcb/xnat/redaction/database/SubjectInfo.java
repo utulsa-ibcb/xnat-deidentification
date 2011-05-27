@@ -160,7 +160,7 @@ public class SubjectInfo {
 			HashMap<String,String> oldHashMap=oldsinfo.getphiMap();
 			for (String key : oldHashMap.keySet())
 			{
-				//Assume the phidata wont change
+				//Assume the phidata value wont change
 				if (!ownHashMap.containsKey(key))
 					ownHashMap.put(key, oldHashMap.get(key));				
 			}
