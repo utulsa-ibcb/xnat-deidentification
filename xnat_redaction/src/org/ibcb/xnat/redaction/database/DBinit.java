@@ -90,10 +90,10 @@ public class DBinit {
 			  }
 			  else
 				  System.out.println("Already have requestinfo table");
-			  if (!connection.getMetaData().getTables(null, null, "phimap", null).next())
+			  if (!connection.getMetaData().getTables(null, null, "subjectidmap", null).next())
 			  {
-				  System.out.println("Dont have PHImap, will create one");
-				  String cmd ="CREATE TABLE PHImap(  UID integer,  PHI char[])WITH (  OIDS=FALSE);ALTER TABLE PHImap OWNER TO "+username+";";
+				  System.out.println("Dont have subjectidmap, will create one");
+				  String cmd ="CREATE TABLE subjectidmap(  subjectid integer NOT NULL,  xnatid text,  CONSTRAINT mapprimarykey PRIMARY KEY (subjectid))WITH (  OIDS=FALSE);ALTER TABLE subjectidmap OWNER TO "+username+";";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -104,7 +104,7 @@ public class DBinit {
 				  }
 			  }
 			  else
-				  System.out.println("Already have PHImap table");
+				  System.out.println("Already have subjectidmap table");
 		  }
 }
 	  public static void main(String[] argv) throws SQLException {

@@ -120,8 +120,8 @@ public class RequestInfo {
 	{
 		//parse all the requestids
 		if (cinfo.length()<1) return null;
-		if (!cinfo.contains(";")) return null;
-		String[] Checkinfo=cinfo.split(";");
+		if (!cinfo.contains(",")) return null;
+		String[] Checkinfo=cinfo.split(",");
 		return Checkinfo;		
 	}
 

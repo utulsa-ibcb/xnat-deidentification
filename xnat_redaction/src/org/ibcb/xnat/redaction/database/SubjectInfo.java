@@ -3,18 +3,17 @@ package org.ibcb.xnat.redaction.database;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
-
-
+import java.math.BigDecimal;
 public class SubjectInfo {
 	
-	private String subjectid;
+	private BigDecimal subjectid;
 	private String phidata;
 	private String[] requestids;
 	private String projectid;
 	private String subjectname;
 	private String dateofbirth;
 	
-	public SubjectInfo(String sub,String phi,String proj,String[] req)
+	public SubjectInfo(BigDecimal sub,String phi,String proj,String[] req)
 	{
 		this.subjectid=sub;
 		this.requestids=req;
@@ -22,14 +21,14 @@ public class SubjectInfo {
 		this.phidata=phi;
 	}
 	
-	public SubjectInfo(String sub,String phi,String proj,String req)
+	public SubjectInfo(BigDecimal sub,String phi,String proj,String req)
 	{
 		this.subjectid=sub;
 		this.requestids=requestidParser(req);
 		this.projectid=proj;
 		this.phidata=phi;
 	}
-	public SubjectInfo(String sub,String phi,String proj,String[] req,String name, String dateofbirth)
+	public SubjectInfo(BigDecimal sub,String phi,String proj,String[] req,String name, String dateofbirth)
 	{
 		this.subjectid=sub;
 		this.requestids=req;
@@ -39,7 +38,7 @@ public class SubjectInfo {
 		this.dateofbirth=dateofbirth;
 	}
 	
-	public SubjectInfo(String sub,String phi,String proj,String req,String name, String dateofbirth)
+	public SubjectInfo(BigDecimal sub,String phi,String proj,String req,String name, String dateofbirth)
 	{
 		this.subjectid=sub;
 		this.requestids=requestidParser(req);
@@ -48,10 +47,10 @@ public class SubjectInfo {
 		this.subjectname=name;
 		this.dateofbirth=dateofbirth;
 	}
-	public String getSubjectid() {
+	public BigDecimal getSubjectid() {
 		return subjectid;
 	}
-	public void setSubjectid(String subjectid) {
+	public void setSubjectid(BigDecimal subjectid) {
 		this.subjectid = subjectid;
 	}
 	public String getphidata() {

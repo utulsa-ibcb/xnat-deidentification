@@ -38,39 +38,24 @@ public class DBManager extends Thread{
 		this.hostname=Hostname;
 		datasource.setServerName(hostname);
 		this.type_of_work=type_of_work;
-		Initializer();
+		//Initializer();
 
 	}
 	public DBManager(int type_of_work)
 	{
 		datasource.setServerName(hostname);
 		this.type_of_work=type_of_work;
-		Initializer();
+		//Initializer();
 
 	}
 	public DBManager()
 	{
 		type_of_work=SINGLE_THREAD;
 		datasource.setServerName(hostname);
-		Initializer();
+		//Initializer();
 	}
 	private void Initializer()
 	{
-		//init the phi map
-		PHImap= new HashMap<String,String>();
-		Connection newcon = null;
-		try {
-			newcon = datasource.getConnection();
-				stmt = newcon.createStatement();
-				ResultSet rs = stmt.executeQuery("SELECT * FROM phimap;");
-				while(rs.next())
-				{
-					PHImap.put(rs.getString("UID"), rs.getString("PHI"));
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
 	}
 	protected Connection getConnection()
 
@@ -249,7 +234,7 @@ public class DBManager extends Thread{
 					for (String subjectid:info.getaffectedsubjects())	
 					{
 						//update the checkou map for this subject id
-						if (!checkoutinfo.containsKey(subjectid))
+						if (!checkoutinfo.containsKey(subjectid) || checkoutinfo.keySet()==null)
 							checkoutinfo.put(subjectid, getSubjectCheckOutInfo(subjectid,userid));
 						else
 							updateCheckOutInfo(checkoutinfo,subjectid,checkoutinfo.get(subjectid));					
@@ -311,17 +296,17 @@ public class DBManager extends Thread{
 		return subjectid;				
 	}
 	
-	public String lookupSubject(SubjectInfo sinfo)
+	public BigDecimal lookupSubject(SubjectInfo sinfo)
 	{
 		Connection newcon = this.getConnection();
-		String subjectid=null;
+		BigDecimal subjectid=null;
 		try {
 			stmt = newcon.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT subjectid FROM subjectinfo WHERE subjectname=\'"+sinfo.getSubjectname()+"\' AND dateofbirth=\'"+sinfo.getDateofbirth()+"\';");
 			//Check if the subject is already exist
 			if (rs.next())
 			{
-				subjectid=rs.getString("subjectid");
+				subjectid=rs.getBigDecimal("subjectid");
 			}
 			if (rs.wasNull()) return null;
 			newcon.close();			
@@ -333,11 +318,11 @@ public class DBManager extends Thread{
 	}
 	
 	
-	public String insertSubjectInfo(SubjectInfo sinfo)
+	public BigDecimal insertSubjectInfo(SubjectInfo sinfo)
 	{
 		
 		Connection newcon = this.getConnection();
-		String subjectid=lookupSubject(sinfo);
+		BigDecimal subjectid=lookupSubject(sinfo);
 		BigDecimal nextid = null;
 		ResultSet id_rs;
 		try {
@@ -346,13 +331,13 @@ public class DBManager extends Thread{
 			if (id_rs.next())
 			{
 			nextid=id_rs.getBigDecimal("nextval");
-			System.out.println("VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
+			//System.out.println("VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
 			}
 			if (subjectid==null) {
 				stmt = newcon.createStatement();
 				stmt.execute("INSERT INTO subjectinfo (subjectid , phidata , projectid , requestids , subjectname , dateofbirth)  VALUES ("+nextid.toString()+", \'"+sinfo.getphidata()+"\',\'"+sinfo.getProjectid()+"\',\'"+sinfo.getRequestidText()+"\',\'"+sinfo.getSubjectname()+"\',\'"+sinfo.getDateofbirth()+"\');");
 				newcon.close();		
-				return nextid.toString();
+				return nextid;
 			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
@@ -456,7 +441,7 @@ public class DBManager extends Thread{
 			SubjectInfo  oldsinfo=null;
 			if (rs.next())
 			{
-				oldsinfo=new SubjectInfo(rs.getString("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
+				oldsinfo=new SubjectInfo(rs.getBigDecimal("subjectid"),rs.getString("phidata"),rs.getString("projectid"),rs.getString("requestids"));
 				sinfo.merge(oldsinfo);
 			}
 			rs.close();			
@@ -469,6 +454,55 @@ public class DBManager extends Thread{
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public BigDecimal lookupSubjectid(String xnatid)
+	{
+		BigDecimal subjectid = null;
+		Connection newcon = this.getConnection();
+		try {	
+				stmt = newcon.createStatement();
+				ResultSet id_rs = stmt.executeQuery("SELECT subjectid FROM subjectidmap WHERE xnatid LIKE \'%,"+xnatid+",%\'");
+				if (id_rs.next())
+				{
+					subjectid=id_rs.getBigDecimal("subjectid");
+				}
+				else
+					subjectid=null;
+				newcon.close();			
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+		return subjectid;	
+	}
+	public void insertSubjectidMap(BigDecimal subjectid,String xnatid)
+	{
+		Connection newcon = this.getConnection();
+		try {	
+				stmt = newcon.createStatement();
+				ResultSet id_rs = stmt.executeQuery("SELECT subjectid,xnatid FROM subjectidmap WHERE subjectid="+subjectid);
+				if (id_rs.next())
+				{
+					String oldxnatid=id_rs.getString("xnatid");
+					//assume get only one xnatid at a time
+					//update
+					if (!oldxnatid.contains(xnatid)){
+					stmt=newcon.createStatement();
+					stmt.execute("UPDATE subjectidmap SET xnatid=\'"+oldxnatid+","+xnatid+"\' WHERE subjectid=\'"+subjectid+"\')");	
+					}
+				}
+				else
+				{
+					//insert
+					stmt=newcon.createStatement();
+					stmt.execute("INSERT INTO subjectidmap(subjectid,xnatid) VALUES(\'"+subjectid+"\',\',"+xnatid+",\')");				
+				}
+				newcon.close();			
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}	
 	}
 
 }

@@ -196,8 +196,12 @@ public class Loader {
 				}
 				
 				// download checkout user information from our database -Liang
-				HashMap<String,String> subjectCheckoutInfo=overallCheckoutInfo.get(subject_id);
-				
+				String uniSubjectid=null;
+				if (db.lookupSubjectid(subject_id)!=null)
+				uniSubjectid=db.lookupSubjectid(subject_id).toString();
+				HashMap<String,String> subjectCheckoutInfo=null;
+				if (uniSubjectid!=null)
+				subjectCheckoutInfo=overallCheckoutInfo.get(uniSubjectid);
 				// populate map of checkout fields -Liang
 				HashMap<String, String> requesting_user_data = subjectCheckoutInfo;
 				HashMap<String, String> filter_data = new HashMap<String,String>();
@@ -230,7 +234,11 @@ public class Loader {
 						
 					}
 				}
-				
+				System.out.println("Check out map for subject "+subject_id);
+				for(String key : filter_data.keySet())
+				{
+					System.out.println(key+"  |  "+filter_data.get(key));					
+				}
 				// Using the above data, along with req_field_names and insert resulting data into the filter_data hashmap
 				// example:
 				// user has already checked out Age previously, and is requesting to check out Race now
@@ -263,8 +271,9 @@ public class Loader {
 					String req_ID=requestId.toPlainString()+";";
 					SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(combined_demographics),project_id,req_ID,combined_demographics.get("PatientName"),combined_demographics.get("PatientBirthdate"));
 					//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());
-					String db_subjectid=db.insertSubjectInfo(s_info);				
-					subject.setNewLabel(db_subjectid);
+					BigDecimal db_subjectid=db.insertSubjectInfo(s_info);		
+					db.insertSubjectidMap(db_subjectid, subject_id);
+					subject.setNewLabel(db_subjectid.toString());
 					//System.out.println("new id "+db_subjectid);
 					if (db_subjectid!=null)
 					{
