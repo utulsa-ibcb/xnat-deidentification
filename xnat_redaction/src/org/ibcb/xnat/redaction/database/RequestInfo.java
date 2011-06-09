@@ -1,6 +1,7 @@
 package org.ibcb.xnat.redaction.database;
 
 import java.math.BigDecimal;
+import java.util.LinkedList;
 
 public class RequestInfo {
 	
@@ -17,6 +18,7 @@ public class RequestInfo {
 		this.userid=userid;
 		this.date=date;
 		this.affectedsubjects=subjectids;
+		this.checkoutinfo=new String();
 		this.adminid=adminid;
 	}
 
@@ -27,8 +29,21 @@ public class RequestInfo {
 		this.date=date;
 		this.adminid=adminid;
 		this.affectedsubjects=subjectidParser(subjectids);
+		this.checkoutinfo=new String();
 		this.checkoutinfo=cinfo;
 	}
+	public RequestInfo(String userid,String date,String adminid,String subjectids,LinkedList<String> cinfo)
+	{
+		this.requestid=requestid;
+		this.userid=userid;
+		this.date=date;
+		this.adminid=adminid;
+		this.affectedsubjects=subjectidParser(subjectids);
+		this.checkoutinfo=new String();
+		for (String c_info : cinfo)
+		this.checkoutinfo+=c_info+",";
+	}
+
 
 	public RequestInfo(String userid,String date,String adminid,String subjectids,String cinfo)
 	{

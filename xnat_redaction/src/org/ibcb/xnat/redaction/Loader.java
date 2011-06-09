@@ -85,7 +85,7 @@ public class Loader {
 			XNATExtractor xext = XNATExtractor.instance();
 			xext.initialize();
 			
-			for(String item : request_fields.split(";")){
+			for(String item : request_fields.split(",")){
 				if(!item.trim().equals(""))
 					req_field_names.add(xext.getSchema().getXnatFieldName("xnat:"+item.trim()));
 			}
@@ -124,7 +124,7 @@ public class Loader {
 			Date dt=new Date();
 			//leave affected subjectids blank for now
 			System.out.println("check out field "+request_fields);
-			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",request_fields);
+			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",req_field_names);
 			BigDecimal requestId=db.getNextRequestID();
 			r_info.setRequestid(requestId);
 			HashMap<String,HashMap<String,String>> overallCheckoutInfo=db.getUserCheckOutInfo(co_user_id);
@@ -222,8 +222,6 @@ public class Loader {
 							filter_data.put(requestName, "1");
 						}					
 					}
-					String phi_checked="phi_checked_out";
-					filter_data.put(phi_checked, Integer.toString(checkoutCount));
 					for (String key:requesting_user_data.keySet())
 					{
 						if (requesting_user_data.get(key).equals(new String("1")))
@@ -234,6 +232,18 @@ public class Loader {
 						
 					}
 				}
+				for (String fieldName : req_field_names)
+				{
+					String key="request_"+fieldName;
+					if (!filter_data.get(key).equals(new String("1")))
+							{
+								filter_data.remove(key);
+								filter_data.put(key, "1");
+								checkoutCount++;
+							}					
+				}
+				String phi_checked="phi_checked_out";
+				filter_data.put(phi_checked, Integer.toString(checkoutCount));
 				System.out.println("Check out map for subject "+subject_id);
 				for(String key : filter_data.keySet())
 				{
@@ -254,7 +264,7 @@ public class Loader {
 				
 				// run permissions checks against checkout ruleset information
 				
-				subject.passed = true;//cr.filter(filter_data);
+				subject.passed = cr.filter(filter_data);
 				// upload redacted information to database -Liang			
 				// PatientAge = [31, 32]
 				// subject_id, field, values
@@ -316,6 +326,9 @@ public class Loader {
 							api.uploadDICOMFiles(target, subject, experiment, scan);
 						}
 					}
+				}else{
+					System.out.println("Subject: " + subject.id + " filtered");
+					
 				}
 			}
 			db.insertRequestInfo(r_info);
