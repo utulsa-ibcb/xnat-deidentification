@@ -28,7 +28,7 @@ public class DBManager extends Thread{
 		datasource.setDataSourceName("A Pooling Source");
 		datasource.setServerName("");
 		datasource.setDatabaseName("privacydb");
-		datasource.setUser("xnat");
+		datasource.setUser("xnat_redaction");
 		datasource.setPassword("xnat");
 		datasource.setMaxConnections(20);
 		

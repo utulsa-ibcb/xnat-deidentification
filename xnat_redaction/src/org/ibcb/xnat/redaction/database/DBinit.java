@@ -12,7 +12,7 @@ public class DBinit {
 
 	public static void setupDB(String hostname) throws SQLException{
 		 
-			String username="xnat";
+			String username="xnat_redaction";
 			String pass="xnat";
 		  System.out.println("-------- PostgreSQL JDBC Connection Testing ------------");
 		  
