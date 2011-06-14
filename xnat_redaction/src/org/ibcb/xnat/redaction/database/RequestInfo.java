@@ -88,7 +88,7 @@ public class RequestInfo {
 	}
 	public String getaffectedsubjectstext()
 	{
-		String subjects = "";
+		String subjects = ";";
 		if (this.affectedsubjects!=null)
 		for (String subject:this.affectedsubjects)
 		{

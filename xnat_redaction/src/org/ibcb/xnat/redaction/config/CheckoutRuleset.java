@@ -21,7 +21,7 @@ import org.ibcb.xnat.redaction.exceptions.CompileException;
  */
 public class CheckoutRuleset {
 	private static int BUF_LEN = 50;
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 	
 	private static final int S_PASS = 0;
 	private static final int S_DROP = 1;

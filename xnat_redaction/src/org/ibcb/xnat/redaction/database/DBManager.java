@@ -151,7 +151,7 @@ public class DBManager extends Thread{
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\';");
+			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\' AND rinfo.affectedsubjects LIKE \'%;"+subjectid+";%\';");
 			while (rs.next())
 			{
 				String checkoutinfo=rs.getString("checkoutinfo");
@@ -204,6 +204,7 @@ public class DBManager extends Thread{
 			newcon = datasource.getConnection();
 			HashMap<String,HashMap<String,String>> 	checkoutinfo=new HashMap<String,HashMap<String,String>>();
 			LinkedList<RequestInfo> newinfo = new LinkedList<RequestInfo>();
+			
 			//Find the associated userids
 				stmt = newcon.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM requestinfo WHERE userid=\'"+userid+"\';");

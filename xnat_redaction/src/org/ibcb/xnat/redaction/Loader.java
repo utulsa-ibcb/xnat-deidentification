@@ -144,7 +144,9 @@ public class Loader {
 				HashMap<String, LinkedList<String>> dicom_demographics = new HashMap<String, LinkedList<String>>();
 				
 				for(String experiment_id : subject.experiment_ids){
+					System.out.println("Experiment: " + experiment_id);
 					for(String scan_id : subject.scan_ids.get(experiment_id)){
+						System.out.println("Scan: " + scan_id);
 					// redact DICOMFiles
 						XNATScan scan = subject.scans.get(scan_id);
 						for(String file : scan.localFiles){
@@ -194,6 +196,8 @@ public class Loader {
 						combined_demographics.put(key, dicom_demographics.get(key).getFirst());
 					}
 				}
+				
+				
 				
 				// download checkout user information from our database -Liang
 				String uniSubjectid=null;
@@ -278,19 +282,21 @@ public class Loader {
 				// upload subject information -Matt
 				if(subject.passed){
 					//Create a subject info for passed subject
-					String req_ID=requestId.toPlainString()+";";
-					SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(combined_demographics),project_id,req_ID,combined_demographics.get("PatientName"),combined_demographics.get("PatientBirthdate"));
-					//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());
-					BigDecimal db_subjectid=db.insertSubjectInfo(s_info);		
-					db.insertSubjectidMap(db_subjectid, subject_id);
-					subject.setNewLabel(db_subjectid.toString());
-					//System.out.println("new id "+db_subjectid);
-					if (db_subjectid!=null)
+					if ((combined_demographics.containsKey("PatientAge") || combined_demographics.containsKey("PatientBirthdate")) && combined_demographics.containsKey("PatientName"))
 					{
-						String newAffectedIDs=r_info.getaffectedsubjectstext()+db_subjectid+";";
-						r_info.setaffectedsubjects(newAffectedIDs);
+						String req_ID=requestId.toPlainString()+";";
+						SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(combined_demographics),project_id,req_ID,combined_demographics.get("PatientName"),combined_demographics.get("PatientBirthdate"));
+						//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());
+						BigDecimal db_subjectid=db.insertSubjectInfo(s_info);		
+						db.insertSubjectidMap(db_subjectid, subject_id);
+						subject.setNewLabel(db_subjectid.toString());
+						//System.out.println("new id "+db_subjectid);
+						if (db_subjectid!=null)
+						{
+							String newAffectedIDs=r_info.getaffectedsubjectstext()+db_subjectid+";";
+							r_info.setaffectedsubjects(newAffectedIDs);
+						}
 					}
-
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
 					for(String field : req_field_names){
