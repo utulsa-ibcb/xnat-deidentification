@@ -13,47 +13,33 @@ import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
 public class DBManager extends Thread{
 
 
-	private static Jdbc3PoolingDataSource datasource;
-	private static HashMap<String,String> PHImap;
-	public static final int SINGLE_THREAD=0;
-	public static final int INSERT_REQUESTINFO=1;
-	public static final int INSERT_SUBJECTINFO=2;
-	public static final int UPDATE_SUBJECTINFO=3;
-	public int type_of_work=0;
+	private Jdbc3PoolingDataSource datasource;
 	protected Statement stmt;
 	String hostname="localhost";
 	static 
 	{
-		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
-		datasource.setDataSourceName("A Pooling Source");
-		datasource.setServerName("");
-		datasource.setDatabaseName("privacydb");
-		datasource.setUser("xnat");
-		datasource.setPassword("xnat");
-		datasource.setMaxConnections(20);
+		
 		
 	}
-	public DBManager(int type_of_work,String Hostname)
+	public DBManager(String Hostname,String databasename, String username, String pass)
 	{
-		this.hostname=Hostname;
-		datasource.setServerName(hostname);
-		this.type_of_work=type_of_work;
-		//Initializer();
+		datasource=new Jdbc3PoolingDataSource();   //Use pooling data source to provide connection pool
+		datasource.setDataSourceName("A Pooling Source");
+		datasource.setServerName(Hostname);
+		datasource.setDatabaseName(databasename);
+		datasource.setUser(username);
+		datasource.setPassword(pass);
+		datasource.setMaxConnections(20);;
+		try {
+			System.out.print("Try to get connection to database :");
+			Connection con = datasource.getConnection();
+			System.out.println("Success!");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
-	}
-	public DBManager(int type_of_work)
-	{
-		datasource.setServerName(hostname);
-		this.type_of_work=type_of_work;
-		//Initializer();
-
-	}
-	public DBManager()
-	{
-		type_of_work=SINGLE_THREAD;
-		datasource.setServerName(hostname);
-		//Initializer();
-	}
 	private void Initializer()
 	{
 	}

@@ -55,7 +55,7 @@ public class CheckoutRuleset {
 	private static final int COND_MODE_IP = 4;
 	private static final int COND_MODE_NUMRANGE = 5;
 	private static final int COND_MODE_NUM = 6;
-	private static final int COND_MODE_COMPARE_INTEGER = 6;
+	private static final int COND_MODE_COMPARE_INTEGER = 7;
 	
 	private static final int OR_OP = 0;
 	private static final int AND_OP = 1;
@@ -286,7 +286,10 @@ public class CheckoutRuleset {
 				
 				b1 = neg ? !b1 : b1;
 				
-				if(DEBUG) System.out.println((neg ? "~" : "") + "( " + val  + (comparison==-1 ? " < " : " > ") + l + " ) = " + b1);	
+				if(DEBUG) {
+					System.out.println((neg ? "~" : "") + "( " + val  + (comparison==-1 ? " < " : " > ") + l + " ) = " + b1);
+					System.out.println("Comparison: " + comparison);
+				}
 				return b1;
 			}
 			else if(mode==COND_MODE_CIDR){
@@ -1587,6 +1590,9 @@ public class CheckoutRuleset {
 			}
 			else if(literal.charAt(0) == '>' || literal.charAt(0) == '<'){
 				c.mode = COND_MODE_COMPARE_INTEGER;		
+				
+				c.comparison = literal.charAt(0) == '>' ? 1 : -1;
+				
 				try{
 					c.l = Long.parseLong(literal.substring(1));
 				}catch(Exception e){

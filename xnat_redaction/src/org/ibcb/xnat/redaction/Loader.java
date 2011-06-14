@@ -119,7 +119,7 @@ public class Loader {
 			api.retreiveProject(target);
 			
 			//init DB manager
-			DBManager db=new DBManager();
+			DBManager db=new DBManager(Configuration.instance().getProperty("database_hostname"),Configuration.instance().getProperty("database_name"),Configuration.instance().getProperty("database_user"),Configuration.instance().getProperty("database_pass"));
 			//init a new request
 			Date dt=new Date();
 			//leave affected subjectids blank for now

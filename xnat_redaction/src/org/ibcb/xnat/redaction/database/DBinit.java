@@ -3,6 +3,8 @@ import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.ibcb.xnat.redaction.config.Configuration;
 public class DBinit {
 	
 	//For first time use 
@@ -10,10 +12,12 @@ public class DBinit {
 	//CREATE USER xnat with password 'xnat';
 	//CREATE DATABASE privacydb;
 
-	public static void setupDB(String hostname) throws SQLException{
-		 
-			String username="xnat";
-			String pass="xnat";
+	public String hostname=new String();
+	public String databasename=new String();
+	public String user=new String();
+	public String pass=new String();
+	
+	public void setupDB() throws SQLException{
 		  System.out.println("-------- PostgreSQL JDBC Connection Testing ------------");
 		  
 		  try {
@@ -31,7 +35,7 @@ public class DBinit {
 	 
 		  try {
 			  
-			 connection = DriverManager.getConnection("jdbc:postgresql://"+hostname+":5432/privacydb",username, pass);
+			 connection = DriverManager.getConnection("jdbc:postgresql://"+hostname+":5432/privacydb",user, pass);
 	 
 		  } catch (SQLException e) {
 		    System.out.println("Connection Failed! Check output console");
@@ -46,7 +50,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "subjectinfo", null).next())
 			  {
 				  System.out.println("Dont have requestinfo, will create one");
-				  String sequence_cmd ="CREATE SEQUENCE next_subjectid INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;ALTER TABLE next_requestid OWNER TO "+username+";";
+				  String sequence_cmd ="CREATE SEQUENCE next_subjectid INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;ALTER TABLE next_requestid OWNER TO "+user+";";
 				  Statement sequence_stat=connection.createStatement();
 				  try{sequence_stat.execute(sequence_cmd);}
 				  catch(SQLException e)
@@ -55,7 +59,7 @@ public class DBinit {
 					  e.printStackTrace();					  
 				  }
 				  System.out.println("Dont have SubjectTable, will create one");
-				  String cmd ="CREATE TABLE subjectinfo(subjectid integer DEFAULT nextval('next_subjectid'::regclass), phidata text, projectid character varying(80), requestids text,  dateofbirth date, subjectname character varying(40), CONSTRAINT subjectprimary PRIMARY KEY (subjectid)) WITH (OIDS=FALSE); ALTER TABLE subjectinfo OWNER TO "+username+";";
+				  String cmd ="CREATE TABLE subjectinfo(subjectid integer DEFAULT nextval('next_subjectid'::regclass), phidata text, projectid character varying(80), requestids text,  dateofbirth date, subjectname character varying(40), CONSTRAINT subjectprimary PRIMARY KEY (subjectid)) WITH (OIDS=FALSE); ALTER TABLE subjectinfo OWNER TO "+user+";";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -70,7 +74,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "requestinfo", null).next())
 			  {
 				  System.out.println("Dont have requestinfo, will create one");
-				  String sequence_cmd ="CREATE SEQUENCE next_requestid INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;ALTER TABLE next_requestid OWNER TO "+username+";";
+				  String sequence_cmd ="CREATE SEQUENCE next_requestid INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;ALTER TABLE next_requestid OWNER TO "+user+";";
 				  Statement sequence_stat=connection.createStatement();
 				  try{sequence_stat.execute(sequence_cmd);}
 				  catch(SQLException e)
@@ -78,7 +82,7 @@ public class DBinit {
 					  System.out.println("ERROR");
 					  e.printStackTrace();					  
 				  }
-				  String cmd ="CREATE TABLE requestinfo(requestid integer DEFAULT nextval('next_requestid'::regclass),  userid character varying(80),  date date,  adminid character varying(80), affectedsubjects text,  checkoutinfo text,  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO "+username+";";
+				  String cmd ="CREATE TABLE requestinfo(requestid integer DEFAULT nextval('next_requestid'::regclass),  userid character varying(80),  date date,  adminid character varying(80), affectedsubjects text,  checkoutinfo text,  CONSTRAINT requestprimary PRIMARY KEY (requestid))WITH (  OIDS=FALSE);ALTER TABLE requestinfo OWNER TO "+user+";";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -93,7 +97,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "subjectidmap", null).next())
 			  {
 				  System.out.println("Dont have subjectidmap, will create one");
-				  String cmd ="CREATE TABLE subjectidmap(  subjectid integer NOT NULL,  xnatid text,  CONSTRAINT mapprimarykey PRIMARY KEY (subjectid))WITH (  OIDS=FALSE);ALTER TABLE subjectidmap OWNER TO "+username+";";
+				  String cmd ="CREATE TABLE subjectidmap(  subjectid integer NOT NULL,  xnatid text,  CONSTRAINT mapprimarykey PRIMARY KEY (subjectid))WITH (  OIDS=FALSE);ALTER TABLE subjectidmap OWNER TO "+user+";";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)
@@ -109,6 +113,11 @@ public class DBinit {
 }
 	  public static void main(String[] argv) throws SQLException {
 		  DBinit myDB=new DBinit();
-		  myDB.setupDB("localhost");
+		  myDB.hostname=Configuration.instance().getProperty("database_hostname");
+		  myDB.databasename=Configuration.instance().getProperty("database_name");
+		  myDB.user=Configuration.instance().getProperty("database_user");
+		  myDB.pass=Configuration.instance().getProperty("database_pass");
+		  //Configuration.instance().getProperty(name)
+		  myDB.setupDB();
 	  }
 }
