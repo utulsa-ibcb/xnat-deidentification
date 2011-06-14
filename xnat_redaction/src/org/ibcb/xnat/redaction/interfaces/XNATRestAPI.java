@@ -91,7 +91,8 @@ public class XNATRestAPI {
 				System.out.println("Downloading: " + query);
 				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
 				con.setRequestMethod("GET");
-				
+				//set time out litmit 5000
+				con.setConnectTimeout(5000);
 				BASE64Encoder enc = new BASE64Encoder();
 				String userpass = user+":"+pass;
 				String encoded = enc.encode(userpass.getBytes());
