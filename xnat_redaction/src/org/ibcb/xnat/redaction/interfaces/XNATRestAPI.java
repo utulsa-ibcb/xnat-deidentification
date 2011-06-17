@@ -73,6 +73,10 @@ public class XNATRestAPI {
 		pass=Configuration.instance().getProperty("xnat_pass");
 	}
 	
+	public String getURL(){
+		return url;
+	}
+	
 	public void printInputStream(InputStream stream) throws IOException{
 		int read = 0;
 		byte[] bytes = new byte[50];
@@ -738,6 +742,42 @@ public class XNATRestAPI {
 		
 		return false;
 	}
+	
+	public boolean retrieveResourceListing(XNATEntity resource, XNATResultSet category){
+		try{
+			String query = url + "/REST" + resource.getPath() +"/"+ category.type + "?format=xml";
+			
+			System.out.println("Listing: " + query);
+			
+			DOMParser parse = queryREST(query);
+			
+			category.parseXMLResult(parse);
+			
+			return true;
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	public boolean retrieveResource(XNATEntity resource){
+		try{
+			String query = url + "/REST" + resource.getPath() + "?format=xml";
+			
+			DOMParser parse = queryREST(query);
+			
+			resource.setXML(parse);
+			
+			return true;
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+
 	
 	// /REST/projects/PROJECT_ID/subject/SUBJECT_ID/files	
 	

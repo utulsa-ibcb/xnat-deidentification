@@ -15,9 +15,25 @@ public class XNATSchema {
 	Map<String, String> xnat_location_map;
 	Map<String, String> xnat_name_map;
 	
-	public XNATSchema(){
+	static XNATSchema instance=null;
+	
+	private XNATSchema() throws CompileException, FileNotFoundException, IOException{
 		xnat_location_map = new HashMap<String, String>();
 		xnat_name_map = new HashMap<String, String>();
+		
+		loadXnatSchema(Configuration.instance().getProperty("xnat_schema"));
+	}
+	
+	public static XNATSchema instance(){
+		if(instance==null){
+			try{
+				instance = new XNATSchema();
+			}catch(Exception e){
+				e.printStackTrace();
+				instance = null;
+			}
+		}
+		return instance;
 	}
 	
 	public Set<String> getMappedFields(){
@@ -61,7 +77,7 @@ public class XNATSchema {
 		}
 	}
 	
-	public void loadXnatSchema(String file) throws IOException, FileNotFoundException, CompileException{
+	private void loadXnatSchema(String file) throws IOException, FileNotFoundException, CompileException{
 		BufferedReader bfr = new BufferedReader(new FileReader(file));
 		String line = null;
 		int lnum = 0;

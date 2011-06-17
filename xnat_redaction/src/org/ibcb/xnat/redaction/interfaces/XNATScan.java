@@ -1,19 +1,20 @@
 package org.ibcb.xnat.redaction.interfaces;
 
+import java.io.IOException;
+import java.rmi.ConnectException;
 import java.util.HashMap;
 import java.util.LinkedList;
+
+import javax.xml.transform.TransformerException;
 
 import org.ibcb.xnat.redaction.synchronization.Globals;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
 public class XNATScan extends XNATEntity{
-	public String id;
-	public String destination_id;
-	
-	public DOMParser xml;
 	
 	public XNATExperiment experiment;
 	
@@ -86,6 +87,8 @@ public class XNATScan extends XNATEntity{
 	public XNATScan(){
 		this.parent_type = "experiments";
 		this.entity_type = "scans";
+		
+		this.xmlIDField = "ID";
 	}
 	
 	public XNATEntity create(String id){
@@ -99,17 +102,23 @@ public class XNATScan extends XNATEntity{
 		return parent.getPath() + "/scans/"+ this.id; 
 	}
 	
-	public void download() {
-		
+	public String getDestinationPath(){
+		return parent.getDestinationPath() + "/scans/"+ this.destination_id; 
 	}
 	
-	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
-		
-		
+	public void download() throws IOException, SAXException, ConnectException, TransformerException {
+		XNATRestAPI.instance().retrieveResource(this);
+	}
+	
+	public HashMap<String, String> getRedactedData(){
 		return null;
 	}
-	public void upload() {
+		
+	public void redact() {
 		
 		
+	}
+	public void upload() throws IOException, SAXException, ConnectException, TransformerException {
+		XNATRestAPI.instance().postREST(XNATRestAPI.instance().getURL()+this.getDestinationPath(), this.extractXML(this.getParent().getParent().getParent().getDestinationID(),this.getParent().getParent().getDestinationID(), this.getParent().getDestinationID()));
 	}
 }

@@ -27,27 +27,22 @@ import org.ibcb.xnat.redaction.synchronization.JobQueue;
 public class DICOMExtractor extends RedactionPipelineService{
 	
 	static DICOMExtractor singleton = null;
-	DICOMSchema schema;
-	
-	public DICOMSchema getSchema(){
-		return schema;
-	}
 	
 	public DICOMExtractor(){
-		schema = null;
+		
 	}
 	
 	public static DICOMExtractor instance(){
-		if(singleton==null) singleton=new DICOMExtractor();
+		if(singleton==null) {
+			singleton=new DICOMExtractor();
+		}
 		return singleton;
 	}
 	
 	public void initialize() throws PipelineServiceException {
 		String file=null;
 		try{
-			schema = new DICOMSchema();
-			file=Configuration.instance().getProperty("dicom_schema");
-			schema.loadDicomSchema(file);
+			DICOMSchema.instance();
 		}catch(Exception e){
 			PipelineServiceException pe = new PipelineServiceException("Error loading shema file from `"+file+"`: " + e.getMessage());
 			pe.setStackTrace(e.getStackTrace());
@@ -150,7 +145,7 @@ public class DICOMExtractor extends RedactionPipelineService{
 				int low = tag & 0x0000FFFF;
 				
 				Pair<Integer,Integer> id = new Pair<Integer,Integer>(high,low);
-				String field = schema.getDICOMFieldName(id);
+				String field = DICOMSchema.instance().getDICOMFieldName(id);
 				
 				if(field != null){
 					String value = e.getValueAsString(scs, 100);			

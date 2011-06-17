@@ -3,12 +3,12 @@ package org.ibcb.xnat.redaction.interfaces;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import org.w3c.dom.Node;
+
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
 public class XNATProject extends XNATEntity{
-	public DOMParser xml;
 	
-	public String id;
 	public String name;
 	public String description;
 	
@@ -28,26 +28,12 @@ public class XNATProject extends XNATEntity{
 		
 		this.entity_type = "projects";
 		this.parent_type  = null;
+		
+		this.xmlIDField = "ID";
 	}
 	
 	public String toString(){
 		return "ID:          "+id+"\nName:        "+name+"\nDescription: "+description;
-	}
-	
-	public void print(){
-		System.out.println("XNAT Project: " + id);
-		System.out.println("Name: " + name);
-		System.out.println("Description: " + description);
-		
-		System.out.println("Experiments:");
-		for(String eid : experiment_ids){
-			System.out.println(eid);
-		}
-		
-		System.out.println("\n\nSubjects:");
-		for(String sid : subject_ids){
-			subjects.get(sid).print();
-		}
 	}
 	
 	public XNATEntity create(String id){
@@ -58,26 +44,47 @@ public class XNATProject extends XNATEntity{
 	}
 	
 	public String getPath(){
-		return "/data/archive/projects/"+ this.id; 
+		return "/projects/"+ this.id; 
+	}
+	
+	public String getDestinationPath(){
+		return "/projects/"+ this.destination_id; 
 	}
 	
 	public void download() {
+		XNATRestAPI.instance().retrieveResource(this);
 		
+		Node proj_node = xml.getDocument().getElementsByTagName("xnat:Project").item(0);
+		
+//		System.out.println("Nodes: " + proj_node.getChildNodes().getLength());
+		for(int s = 0; s < proj_node.getChildNodes().getLength(); s++){
+			Node n = proj_node.getChildNodes().item(s);
+			
+//			System.out.println("Node: " + n.getPrefix()+":"+n.getLocalName());
+			
+			if(n.getPrefix() != null && n.getPrefix().equalsIgnoreCase("xnat")){
+				if(n.getLocalName().equalsIgnoreCase("name")){
+					this.name = n.getTextContent();
+				}
+				else if(n.getLocalName().equalsIgnoreCase("description")){
+					this.description = n.getTextContent();
+				}
+			}
+		}
+		
+		System.out.println(this.toString());
 	}
 	
-	public String entityType() {
-		
-		
+	public HashMap<String, String> getRedactedData(){
 		return null;
 	}
 	
-	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
-		
-		
-		return null;
+	public void redact() {
+
 	}
+	
 	public void upload() {
-		
+		 
 		
 	}
 }

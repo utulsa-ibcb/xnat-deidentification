@@ -28,14 +28,10 @@ import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 public class XNATExtractor extends RedactionPipelineService{
 	
 	static XNATExtractor singleton = null;
-	XNATSchema schema;
 	
-	public XNATSchema getSchema(){
-		return schema;
-	}
 	
 	public XNATExtractor(){
-		schema = null;
+
 	}
 	
 	public static XNATExtractor instance(){
@@ -46,9 +42,7 @@ public class XNATExtractor extends RedactionPipelineService{
 	public void initialize() throws PipelineServiceException {
 		String file=null;
 		try{
-			schema = new XNATSchema();
-			file=Configuration.instance().getProperty("xnat_schema");
-			schema.loadXnatSchema(file);
+			XNATSchema.instance();
 		}catch(Exception e){
 			PipelineServiceException pe = new PipelineServiceException("Error loading schema file from `"+file+"`: " + e.getMessage());
 			pe.setStackTrace(e.getStackTrace());
@@ -113,7 +107,7 @@ public class XNATExtractor extends RedactionPipelineService{
 					if(y_node.getLocalName()!=null){
 						String tag_name = (y_node.getPrefix()!=null ? y_node.getPrefix()+":" : "") + y_node.getLocalName();
 						
-						String fieldname = schema.getXnatFieldName(tag_name);
+						String fieldname = XNATSchema.instance().getXnatFieldName(tag_name);
 						
 						demographics.put(fieldname, y_node.getTextContent());
 						

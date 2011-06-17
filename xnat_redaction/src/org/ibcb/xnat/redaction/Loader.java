@@ -15,6 +15,7 @@ import java.util.TimeZone;
 import org.dcm4che2.data.DicomObject;
 import org.ibcb.xnat.redaction.config.CheckoutRuleset;
 import org.ibcb.xnat.redaction.config.Configuration;
+import org.ibcb.xnat.redaction.config.DICOMSchema;
 import org.ibcb.xnat.redaction.config.XNATSchema;
 import org.ibcb.xnat.redaction.database.*;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
@@ -88,19 +89,19 @@ public class Loader {
 			
 			LinkedList<String> complete_field_names = new LinkedList<String>();
 			
-			for(String f : dext.getSchema().getMappedFields()){
+			for(String f : DICOMSchema.instance().getMappedFields()){
 				if(!complete_field_names.contains(f))
 					complete_field_names.add(f);
 			}
 			
-			for(String f : xext.getSchema().getMappedFields()){
+			for(String f : XNATSchema.instance().getMappedFields()){
 				if(!complete_field_names.contains(f))
 					complete_field_names.add(f);
 			}
 			
 			for(String item : request_fields.split(",")){
 				if(!item.trim().equals(""))
-					req_field_names.add(xext.getSchema().getXnatFieldName("xnat:"+item.trim()));
+					req_field_names.add(XNATSchema.instance().getXnatFieldName("xnat:"+item.trim()));
 			}
 			
 			// load redaction rules
@@ -117,7 +118,7 @@ public class Loader {
 			
 			// download project and subject ids
 			XNATProject project = new XNATProject();
-			project.id = project_id;
+			project.setID(project_id);
 
 			Checkout.instance().downloadProjectXML(project);
 			
@@ -126,7 +127,7 @@ public class Loader {
 			// Get target project
 			
 			XNATProject target = new XNATProject();
-			target.id = dest_project_id;
+			target.setID(dest_project_id);
 			api.retreiveProject(target);
 			
 			//init DB manager
@@ -150,7 +151,7 @@ public class Loader {
 				// redact XNATSubject demographics
 				
 				XNATSubject subject = project.subjects.get(subject_id);
-				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true);
+				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.getXML(), true);
 				
 				HashMap<String, LinkedList<String>> dicom_demographics = new HashMap<String, LinkedList<String>>();
 				
@@ -310,17 +311,17 @@ public class Loader {
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
 					for(String field : request_fields.split(",")){
-						if(combined_demographics.containsKey(xext.getSchema().getXnatFieldName("xnat:"+field))){
-							System.out.println("Reinserting: " + "xnat:"+field+" value " + combined_demographics.get(xext.getSchema().getXnatFieldName("xnat:"+field)));
-							xext.insertData(subject.xml, "xnat:"+field, combined_demographics.get(xext.getSchema().getXnatFieldName("xnat:"+field)));
+						if(combined_demographics.containsKey(XNATSchema.instance().getXnatFieldName("xnat:"+field))){
+							System.out.println("Reinserting: " + "xnat:"+field+" value " + combined_demographics.get(XNATSchema.instance().getXnatFieldName("xnat:"+field)));
+							xext.insertData(subject.getXML(), "xnat:"+field, combined_demographics.get(XNATSchema.instance().getXnatFieldName("xnat:"+field)));
 						}
 					}
 					
 					String response = api.postSubject(target);
-					subject.destination_id = response.substring(response.lastIndexOf('/')+1);
+					subject.setDestinationID(response.substring(response.lastIndexOf('/')+1));
 					
 					if(!api.putSubject(target, subject)){
-						throw new PipelineServiceException("Unable to upload subject: " + subject.id);
+						throw new PipelineServiceException("Unable to upload subject: " + subject.getID());
 					}
 
 					// upload experiment information -Matt
@@ -336,7 +337,7 @@ public class Loader {
 							XNATScan scan = subject.scans.get(scan_id);
 							
 							response = api.postScan(target, subject, experiment, scan);
-							scan.destination_id = response.substring(response.lastIndexOf('/')+1);
+							scan.setDestinationID(response.substring(response.lastIndexOf('/')+1));
 						
 
 							// upload DICOM files -Matt
@@ -344,7 +345,7 @@ public class Loader {
 						}
 					}
 				}else{
-					System.out.println("Subject: " + subject.id + " filtered");
+					System.out.println("Subject: " + subject.getID() + " filtered");
 					
 				}
 			}
@@ -366,6 +367,7 @@ public class Loader {
 			if(email_errors){
 				String error_text = "["+human_date+"]: Compiler Exception encountered in XNATRedaction engine, contact systema administrator";
 
+				
 				// upload error message to database
 			}
 			
