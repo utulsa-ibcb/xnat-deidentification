@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.helpers.Pair;
@@ -17,6 +18,10 @@ public class XNATSchema {
 	public XNATSchema(){
 		xnat_location_map = new HashMap<String, String>();
 		xnat_name_map = new HashMap<String, String>();
+	}
+	
+	public Set<String> getMappedFields(){
+		return xnat_location_map.keySet();
 	}
 	
 	public String getXnatFieldLocation(String field_id){

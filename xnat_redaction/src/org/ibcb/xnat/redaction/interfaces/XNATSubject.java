@@ -3,13 +3,12 @@ package org.ibcb.xnat.redaction.interfaces;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.synchronization.Globals;
 import org.w3c.dom.Node;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
-public class XNATSubject {
+public class XNATSubject extends XNATEntity{
 	private static int destIdCounter = 0;
 	
 	public DOMParser xml;
@@ -69,7 +68,7 @@ public class XNATSubject {
 			 }
 			 
 			 subject_xml +=
-			 "    </xnat:demographics>\n"+
+			 "    </xnat:de mographics>\n"+
 			 "</xnat:Subject>";
 		 
 		 boolean generated = true;
@@ -118,6 +117,40 @@ public class XNATSubject {
 				scans.get(scan_id).print();
 			}
 		}
+	}
+	
+	public void XNATSubject(){
+		this.entity_type = "subjects";
+		this.parent_type = "projects";
+	}
+	
+	public XNATEntity create(String id){
+		XNATSubject exp = new XNATSubject();
+		exp.id = id;
+		
+		return exp;
+	}
+	
+	public String getPath(){
+		return parent.getPath() + "/subjects/"+ this.id; 
+	}
+	
+	public void download() {
+		
+	}
+	
+	public String entityType() {
+		
+		
+		return "subjects";
+	}
+	
+	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
+		
+		
+		return null;
+	}
+	public void upload() {
 		
 		
 	}

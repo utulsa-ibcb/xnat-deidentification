@@ -21,7 +21,7 @@ import org.ibcb.xnat.redaction.exceptions.CompileException;
  */
 public class CheckoutRuleset {
 	private static int BUF_LEN = 50;
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 	
 	private static final int S_PASS = 0;
 	private static final int S_DROP = 1;
@@ -1719,7 +1719,7 @@ public class CheckoutRuleset {
 	 * @param filename The full path to the rule file.
 	 * @return A boolean indicating success or failure.
 	 */
-	public boolean loadRuleSet(String filename){
+	public boolean loadRuleSet(String filename) throws CompileException{
 		File file = new File(filename);
 		
 		LinkedList<Symbol> symbols = new LinkedList<Symbol>();
@@ -1757,8 +1757,7 @@ public class CheckoutRuleset {
 							symbols.add(sym);
 					}
 				}catch(CompileException e){
-					System.out.println("Lexical Parsing Error: Line " + line + ": " + e.getMessage());
-					return false;
+					throw new CompileException("Lexical Parsing Error: Line " + line + ": " + e.getMessage());
 				}
 				cnt++;
 				if(cnt==amnt_read){
@@ -1776,8 +1775,7 @@ public class CheckoutRuleset {
 						symbols.add(sym);
 				}
 			}catch(CompileException e){
-				System.out.println("Lexical Parsing Error: Line " + line + ": " + e.getMessage());
-				return false;
+				throw new CompileException("Lexical Parsing Error: Line " + line + ": " + e.getMessage());
 			}
 			
 			Symbol sym = new Symbol();
@@ -1812,8 +1810,7 @@ public class CheckoutRuleset {
 			// next syntax item
 			syntax.analyzeSymbols(symbols);
 		}catch(CompileException e){
-			System.out.println("Syntax Parsing Error: Line " + (syntax.curSymbol()!=null ? syntax.curSymbol().line : line) + ": " + e.getMessage());
-			return false;
+			throw new CompileException("Syntax Parsing Error: Line " + (syntax.curSymbol()!=null ? syntax.curSymbol().line : line) + ": " + e.getMessage());
 		}
 		
 		if(DEBUG) {

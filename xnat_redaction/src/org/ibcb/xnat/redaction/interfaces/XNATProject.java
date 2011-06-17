@@ -5,7 +5,7 @@ import java.util.LinkedList;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
-public class XNATProject {
+public class XNATProject extends XNATEntity{
 	public DOMParser xml;
 	
 	public String id;
@@ -25,6 +25,9 @@ public class XNATProject {
 		subjects = new HashMap<String, XNATSubject>();
 
 		experiments = new HashMap<String, XNATExperiment>();
+		
+		this.entity_type = "projects";
+		this.parent_type  = null;
 	}
 	
 	public String toString(){
@@ -45,5 +48,36 @@ public class XNATProject {
 		for(String sid : subject_ids){
 			subjects.get(sid).print();
 		}
+	}
+	
+	public XNATEntity create(String id){
+		XNATProject exp = new XNATProject();
+		exp.id = id;
+		
+		return exp;
+	}
+	
+	public String getPath(){
+		return "/data/archive/projects/"+ this.id; 
+	}
+	
+	public void download() {
+		
+	}
+	
+	public String entityType() {
+		
+		
+		return null;
+	}
+	
+	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
+		
+		
+		return null;
+	}
+	public void upload() {
+		
+		
 	}
 }
