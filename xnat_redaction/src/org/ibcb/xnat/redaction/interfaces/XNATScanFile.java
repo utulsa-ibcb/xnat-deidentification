@@ -12,6 +12,7 @@ import org.dcm4che2.data.DicomObject;
 import org.ibcb.xnat.redaction.DICOMExtractor;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
+import org.ibcb.xnat.redaction.interfaces.files.DICOMFileHandler;
 import org.ibcb.xnat.redaction.synchronization.Globals;
 import org.xml.sax.SAXException;
 
@@ -24,9 +25,8 @@ public class XNATScanFile extends XNATEntity{
 	String type;
 	
 	String localFile;
-	String redactedLocalFile;
 	
-	HashMap<String, String> dicom_fields;
+	XNATFileHandler handler;
 	
 	public XNATScanFile(){
 		this.entity_type = "files";
@@ -51,47 +51,38 @@ public class XNATScanFile extends XNATEntity{
 	}
 	
 	public void download()  throws IOException, SAXException, ConnectException, TransformerException {
-		
-		if(xml_listing.getValue("collection").equals("DICOM")){
+		if(fileHandlers.containsKey(xml_listing.getValue("collection"))){
 			localFile = Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath()+"/"+this.id;
 			
 			Globals.createDirectory(Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath());
 			
 			XNATRestAPI.instance().downloadREST(XNATRestAPI.instance().getURL()+xml_listing.getValue("URI"), localFile);
+			
+			handler = fileHandlers.get(xml_listing.getValue("collection")).create(localFile, this);
 		}
 	}
 	
 	public HashMap<String, String> getRedactedData(){
-		return dicom_fields;
+		if(handler!=null)
+			return handler.getRedactedData();
+		
+		return null;
 	}
 	
 	public void redact() {
-		
-		if(xml_listing.getValue("collection").equals("DICOM")){
-			
-			redactedLocalFile = Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath()+"/redacted/"+this.id;
-			
-			File dir = new File(Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath()+"/redacted/");
-			if(!dir.exists()){
-				dir.mkdir();
-			}
-			
-			try{
-				DicomObject dcmObj = DICOMExtractor.instance().loadDicom(localFile);
-				
-				System.out.println("Redacting to: " + redactedLocalFile);
-				
-				dicom_fields = DICOMExtractor.instance().extractNameValuePairs(dcmObj, XNATEntity.preservedFields());
-				DICOMExtractor.instance().writeDicom(redactedLocalFile, dcmObj);
-			}catch(PipelineServiceException pse){
-				pse.printStackTrace();
-			}
-		}
-		
+		if(handler!=null)
+			handler.redact();
 	}
 	public void upload()  throws IOException, SAXException, ConnectException, TransformerException {
-		if(xml_listing.getValue("collection").equals("DICOM")){
-			XNATRestAPI.instance().postFile(XNATRestAPI.instance().getURL()+this.getDestinationPath(), redactedLocalFile);
+		if(handler!=null){
+			XNATRestAPI.instance().postFile(XNATRestAPI.instance().getURL()+this.getDestinationPath(), handler.getRedactedFileLocation());
 		}
+	}
+	
+	static HashMap<String, XNATFileHandler> fileHandlers = new HashMap<String, XNATFileHandler>();
+	
+	static {
+		XNATFileHandler xf = new DICOMFileHandler();
+		fileHandlers.put(xf.collection(),xf);
 	}
 }

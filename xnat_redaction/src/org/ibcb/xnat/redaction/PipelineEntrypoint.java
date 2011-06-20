@@ -34,6 +34,11 @@ public class PipelineEntrypoint {
 		
 		LinkedList<String> req_field_names = new LinkedList<String>();
 		
+		String []fields = request_fields.split(",");
+		
+		for(String f : fields){
+			req_field_names.add(f);
+		}
 		
 		try {
 			XNATEntity proj = XNATEntity.getEntity("projects", project_id);
