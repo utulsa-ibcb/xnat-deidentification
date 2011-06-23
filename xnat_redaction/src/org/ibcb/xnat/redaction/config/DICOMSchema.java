@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.helpers.Pair;
@@ -17,6 +18,10 @@ public class DICOMSchema {
 	public DICOMSchema(){
 		dicom_location_map = new HashMap<String, Pair<Integer, Integer>>();
 		dicom_name_map = new HashMap<Pair<Integer, Integer>, String>();
+	}
+	
+	public Set<String> getMappedFields(){
+		return dicom_location_map.keySet();
 	}
 	
 	public Pair<Integer, Integer> getDICOMFieldLocation(String field_name){

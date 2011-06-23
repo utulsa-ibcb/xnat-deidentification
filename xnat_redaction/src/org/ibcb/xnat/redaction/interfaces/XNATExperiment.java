@@ -1,5 +1,6 @@
 package org.ibcb.xnat.redaction.interfaces;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.w3c.dom.Node;
@@ -7,13 +8,13 @@ import org.w3c.dom.NodeList;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
-public class XNATExperiment {
+public class XNATExperiment extends XNATEntity{
 	public DOMParser xml;
-	public String id;
-	public String subject_id;
-	public String destination_id;
 	
-	public LinkedList<XNATFile> files = new LinkedList<XNATFile>();
+	
+	public String subject_id;
+	
+	public LinkedList<XNATScanFile> files = new LinkedList<XNATScanFile>();
 	public LinkedList<XNATScan> scans = new LinkedList<XNATScan>();
 	
 	public void extractFiles(){
@@ -22,7 +23,7 @@ public class XNATExperiment {
 		for(int i = 0; i < file_fields.getLength(); i++){
 			Node n = file_fields.item(i);
 			
-			XNATFile file = new XNATFile();
+			XNATScanFile file = new XNATScanFile();
 			
 			file.label = n.getAttributes().getNamedItem("label").getNodeValue();
 			file.URI = n.getAttributes().getNamedItem("URI").getNodeValue();
@@ -88,5 +89,36 @@ public class XNATExperiment {
 		experiment_xml += "</xnat:MRSession>\n";
 		
 		return experiment_xml;
+	}
+	
+	public XNATEntity create(String id){
+		XNATExperiment exp = new XNATExperiment();
+		exp.id = id;
+		
+		return exp;
+	}
+	
+	public String getPath(){
+		return parent.getPath() + "/experiments/"+ this.id; 
+	}
+	
+	public void download() {
+		
+	}
+	
+	public String entityType() {
+		
+		
+		return null;
+	}
+	
+	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
+		
+		
+		return null;
+	}
+	public void upload() {
+		
+		
 	}
 }

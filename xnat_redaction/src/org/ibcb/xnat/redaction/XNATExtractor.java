@@ -17,7 +17,6 @@ import org.dcm4che2.io.DicomInputStream;
 import org.dcm4che2.io.DicomOutputStream;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.DICOMSchema;
-import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.config.XNATSchema;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
 import org.ibcb.xnat.redaction.helpers.Pair;
@@ -95,7 +94,7 @@ public class XNATExtractor extends RedactionPipelineService{
 		}
 	}
 	
-	public HashMap<String, String> extractNameValuePairs(DOMParser xnat_subject, boolean redact, RedactionRuleset rules){
+	public HashMap<String, String> extractNameValuePairs(DOMParser xnat_subject, boolean redact){
 
 		SpecificCharacterSet scs = new SpecificCharacterSet("latin1"); 
 	
@@ -120,7 +119,7 @@ public class XNATExtractor extends RedactionPipelineService{
 						
 						System.out.println("Tag: " + tag_name + " mapped to: " + fieldname);
 						
-						if(redact && rules.redact(RedactionRuleset.PROTO_XNAT, fieldname)){
+						if(redact && fieldname != null){
 							y_node.setTextContent("");
 							System.out.println("Redacted: " + fieldname);
 						}
@@ -130,19 +129,5 @@ public class XNATExtractor extends RedactionPipelineService{
 		}
 		
 		return demographics;
-	}
-	
-	public static void main(String args[]) throws PipelineServiceException{
-		XNATExtractor de = XNATExtractor.instance();
-		de.initialize();
-	
-		RedactionRuleset rules = new RedactionRuleset();
-		try{
-			rules.parseRuleset(Configuration.instance().getProperty("redaction_rules"));
-		}catch(Exception e){
-			e.printStackTrace();
-			System.exit(1);
-		}
-		
 	}
 }

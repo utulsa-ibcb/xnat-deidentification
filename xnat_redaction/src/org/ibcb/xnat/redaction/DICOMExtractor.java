@@ -19,7 +19,6 @@ import org.dcm4che2.io.DicomInputStream;
 import org.dcm4che2.io.DicomOutputStream;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.DICOMSchema;
-import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
 import org.ibcb.xnat.redaction.helpers.Pair;
 import org.ibcb.xnat.redaction.interfaces.RedactionPipelineService;
@@ -135,7 +134,7 @@ public class DICOMExtractor extends RedactionPipelineService{
 		return dcmObj;
 	}
 	
-	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj, RedactionRuleset rules, List<String> request_fields){
+	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj, List<String> request_fields){
 
 		SpecificCharacterSet scs = new SpecificCharacterSet("latin1"); 
 		
@@ -153,12 +152,11 @@ public class DICOMExtractor extends RedactionPipelineService{
 				Pair<Integer,Integer> id = new Pair<Integer,Integer>(high,low);
 				String field = schema.getDICOMFieldName(id);
 				
-				boolean redact = rules.redact(RedactionRuleset.PROTO_DICOM, field); 
-				if(redact || rules.translate(RedactionRuleset.PROTO_DICOM, field)){
+				if(field != null){
 					String value = e.getValueAsString(scs, 100);			
 					dicomPairs.put(field, value);
 					
-					if(redact && !request_fields.contains(field)){
+					if(!request_fields.contains(field)){
 						redacted.add(tag);
 					}
 					
@@ -180,25 +178,29 @@ public class DICOMExtractor extends RedactionPipelineService{
 		return dicomPairs;
 	}
 	
+/*	public void writeDicom(String destination, DicomObject file){
+		
+	}
+	
+	public DicomObject loadDicom(String DICOMfile) throws PipelineServiceException{
+		
+	}
+	
+	public HashMap<String, String> extractNameValuePairs(DicomObject dcmObj, RedactionRuleset rules, List<String> request_fields){
+		
+	}*/
+	
 	public static void main(String args[]) throws PipelineServiceException{
 		DICOMExtractor de = DICOMExtractor.instance();
 		de.initialize();
-	
-		RedactionRuleset rules = new RedactionRuleset();
-		try{
-			rules.parseRuleset(Configuration.instance().getProperty("redaction_rules"));
-		}catch(Exception e){
-			e.printStackTrace();
-			System.exit(1);
-		}
 		
 		LinkedList<String> req_fields = new LinkedList<String>();
 		req_fields.add("PatientName");
 		
-		String input = "./data/BRAINIX/IRM/T2W-FE-EPI - 501/IM-0001-0001.dcm";
+		String input = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S02399/experiments/CENTRAL_E04868/scans/3/I.001.dcm";
 		DicomObject obj = de.loadDicom(input);
 		
-		HashMap<String,String> hs = de.extractNameValuePairs(obj, rules, req_fields);
+		HashMap<String,String> hs = de.extractNameValuePairs(obj, req_fields);
 		System.out.println("+-------+");
 		System.out.println("| Pre:  |");
 		System.out.println("+-------+");
@@ -207,12 +209,12 @@ public class DICOMExtractor extends RedactionPipelineService{
 		}
 		
 		File f = new File(input);
-		String nfilename = Configuration.instance().getProperty("temp_dicom_storage")+f.getName()+".redacted";
+		String nfilename = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S02399/experiments/CENTRAL_E04868/scans/3/redacted/I.001.dcm";
 		de.writeDicom(nfilename, obj);
 		
 		DicomObject obj2_test = de.loadDicom(nfilename);
 		
-		hs = de.extractNameValuePairs(obj2_test, rules, req_fields);
+		hs = de.extractNameValuePairs(obj2_test, req_fields);
 		System.out.println("+-------+");
 		System.out.println("| Post: |");
 		System.out.println("+-------+");

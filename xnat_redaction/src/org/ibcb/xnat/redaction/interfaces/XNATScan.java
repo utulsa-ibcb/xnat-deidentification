@@ -1,5 +1,6 @@
 package org.ibcb.xnat.redaction.interfaces;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.ibcb.xnat.redaction.synchronization.Globals;
@@ -8,7 +9,7 @@ import org.w3c.dom.NodeList;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
-public class XNATScan {
+public class XNATScan extends XNATEntity{
 	public String id;
 	public String destination_id;
 	
@@ -16,7 +17,7 @@ public class XNATScan {
 	
 	public XNATExperiment experiment;
 	
-	public LinkedList<XNATFile> files = new LinkedList<XNATFile>();
+	public LinkedList<XNATScanFile> files = new LinkedList<XNATScanFile>();
 	public LinkedList<String> localFiles = new LinkedList<String>();
 	
 	public String tmp_folder;
@@ -56,7 +57,7 @@ public class XNATScan {
 		for(int i = 0; i < file_fields.getLength(); i++){
 			Node n = file_fields.item(i);
 			
-			XNATFile file = new XNATFile();
+			XNATScanFile file = new XNATScanFile();
 			
 			file.label = n.getAttributes().getNamedItem("label").getNodeValue();
 			file.URI = n.getAttributes().getNamedItem("URI").getNodeValue();
@@ -73,12 +74,42 @@ public class XNATScan {
 	public void print(){
 		System.out.println("            Scan: " + id);
 		System.out.println("                Files:");
-		for(XNATFile f : files){
+		for(XNATScanFile f : files){
 			System.out.println("                "+f.format+": " + f.URI);
 		}
 		System.out.println("                Downloaded Files:");
 		for(String f : localFiles){
 			System.out.println("                "+f);
 		}
+	}
+	
+	public XNATScan(){
+		this.parent_type = "experiments";
+		this.entity_type = "scans";
+	}
+	
+	public XNATEntity create(String id){
+		XNATScan exp = new XNATScan();
+		exp.id = id;
+		
+		return exp;
+	}
+	
+	public String getPath(){
+		return parent.getPath() + "/scans/"+ this.id; 
+	}
+	
+	public void download() {
+		
+	}
+	
+	public HashMap<String, String> redact(LinkedList<String> preservedFields) {
+		
+		
+		return null;
+	}
+	public void upload() {
+		
+		
 	}
 }

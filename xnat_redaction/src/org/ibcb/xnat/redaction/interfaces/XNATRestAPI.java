@@ -34,8 +34,8 @@ import org.dcm4che2.data.DicomObject;
 import org.ibcb.xnat.redaction.DICOMExtractor;
 import org.ibcb.xnat.redaction.XNATExtractor;
 import org.ibcb.xnat.redaction.config.Configuration;
-import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
+import org.ibcb.xnat.redaction.helpers.Downloader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -44,6 +44,7 @@ import org.xml.sax.SAXException;
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
 import sun.misc.BASE64Encoder;
+
 
 
 public class XNATRestAPI {
@@ -59,7 +60,7 @@ public class XNATRestAPI {
 	
 	boolean enable_auth=true;
 	
-	String url="http://central.xnat.org";
+	String url;
 	String user;
 	String pass;
 	
@@ -69,6 +70,7 @@ public class XNATRestAPI {
 	}
 	
 	public XNATRestAPI(){
+		url =Configuration.instance().getProperty("xnat_server");
 		user=Configuration.instance().getProperty("xnat_user");
 		pass=Configuration.instance().getProperty("xnat_pass");
 	}
@@ -112,6 +114,16 @@ public class XNATRestAPI {
 				fos.close();
 				stuff.close();
 				
+				/* 
+				//Use a stand along downloader 
+				 
+				File output=new File(location);
+				Downloader downloader=new Downloader(new URL(query),output);
+				downloader.run();
+				while (!downloader.isCompleted()) {;}
+				
+							 
+				 */
 				return;
 			}catch(ConnectException ce){
 				ce.printStackTrace();

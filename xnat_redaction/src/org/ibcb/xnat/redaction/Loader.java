@@ -15,7 +15,6 @@ import java.util.TimeZone;
 import org.dcm4che2.data.DicomObject;
 import org.ibcb.xnat.redaction.config.CheckoutRuleset;
 import org.ibcb.xnat.redaction.config.Configuration;
-import org.ibcb.xnat.redaction.config.RedactionRuleset;
 import org.ibcb.xnat.redaction.config.XNATSchema;
 import org.ibcb.xnat.redaction.database.*;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
@@ -28,6 +27,8 @@ import org.ibcb.xnat.redaction.interfaces.XNATSubject;
 import org.ibcb.xnat.redaction.synchronization.Globals;
 public class Loader {
 	static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	static int uk_id = 0;
 	
 	// log_flags:  errors = errors to log file or email or both
 	//             redaction = redaction information to log, email or both
@@ -85,15 +86,25 @@ public class Loader {
 			XNATExtractor xext = XNATExtractor.instance();
 			xext.initialize();
 			
+			LinkedList<String> complete_field_names = new LinkedList<String>();
+			
+			for(String f : dext.getSchema().getMappedFields()){
+				if(!complete_field_names.contains(f))
+					complete_field_names.add(f);
+			}
+			
+			for(String f : xext.getSchema().getMappedFields()){
+				if(!complete_field_names.contains(f))
+					complete_field_names.add(f);
+			}
+			
 			for(String item : request_fields.split(",")){
 				if(!item.trim().equals(""))
 					req_field_names.add(xext.getSchema().getXnatFieldName("xnat:"+item.trim()));
 			}
 			
 			// load redaction rules
-			
-			RedactionRuleset ruleset = new RedactionRuleset();
-			ruleset.parseRuleset(Configuration.instance().getProperty("redaction_rules"));
+
 			
 			// load checkout ruleset and checkout system
 			CheckoutRuleset cr = new CheckoutRuleset();
@@ -139,14 +150,12 @@ public class Loader {
 				// redact XNATSubject demographics
 				
 				XNATSubject subject = project.subjects.get(subject_id);
-				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true, ruleset);
+				HashMap<String, String> xnat_demographics = XNATExtractor.instance().extractNameValuePairs(subject.xml, true);
 				
 				HashMap<String, LinkedList<String>> dicom_demographics = new HashMap<String, LinkedList<String>>();
 				
 				for(String experiment_id : subject.experiment_ids){
-					System.out.println("Experiment: " + experiment_id);
 					for(String scan_id : subject.scan_ids.get(experiment_id)){
-						System.out.println("Scan: " + scan_id);
 					// redact DICOMFiles
 						XNATScan scan = subject.scans.get(scan_id);
 						for(String file : scan.localFiles){
@@ -158,7 +167,7 @@ public class Loader {
 								
 								DicomObject obj = dext.loadDicom(input);
 								
-								HashMap<String,String> hs = dext.extractNameValuePairs(obj, ruleset, req_field_names);
+								HashMap<String,String> hs = dext.extractNameValuePairs(obj, req_field_names);
 								
 								// Store hs data in dicom map
 								
@@ -197,8 +206,6 @@ public class Loader {
 					}
 				}
 				
-				
-				
 				// download checkout user information from our database -Liang
 				String uniSubjectid=null;
 				if (db.lookupSubjectid(subject_id)!=null)
@@ -210,7 +217,7 @@ public class Loader {
 				HashMap<String, String> requesting_user_data = subjectCheckoutInfo;
 				HashMap<String, String> filter_data = new HashMap<String,String>();
 				int checkoutCount=0;
-				for (String field :ruleset.getFieldNames())
+				for (String field : complete_field_names)
 				{
 						String requestName="request_"+field;
 						filter_data.put(requestName, "0");						
@@ -282,6 +289,7 @@ public class Loader {
 				// upload subject information -Matt
 				if(subject.passed){
 					//Create a subject info for passed subject
+
 					if (combined_demographics.containsKey("PatientBirthdate") && combined_demographics.containsKey("PatientName"))
 					{
 						String req_ID=requestId.toPlainString()+";";
@@ -297,11 +305,15 @@ public class Loader {
 							r_info.setaffectedsubjects(newAffectedIDs);
 						}
 					}
+					else{
+						subject.setNewLabel("unknown_"+(uk_id++));
+					}
 					
 					// reinsert requested, authorized information into XNAT and DICOM -Matt			
-					for(String field : req_field_names){
-						if(xnat_demographics.containsKey(field)){
-							xext.insertData(subject.xml, "xnat:"+field, xnat_demographics.get(field));
+					for(String field : request_fields.split(",")){
+						if(combined_demographics.containsKey(xext.getSchema().getXnatFieldName("xnat:"+field))){
+							System.out.println("Reinserting: " + "xnat:"+field+" value " + combined_demographics.get(xext.getSchema().getXnatFieldName("xnat:"+field)));
+							xext.insertData(subject.xml, "xnat:"+field, combined_demographics.get(xext.getSchema().getXnatFieldName("xnat:"+field)));
 						}
 					}
 					
@@ -317,7 +329,7 @@ public class Loader {
 						XNATExperiment experiment = project.experiments.get(eid);
 						
 						response = api.postExperiment(target, subject, experiment);
-						experiment.destination_id = response.substring(response.lastIndexOf('/')+1);
+						experiment.setDestinationID(response.substring(response.lastIndexOf('/')+1));
 
 						
 						// upload scans -Matt
