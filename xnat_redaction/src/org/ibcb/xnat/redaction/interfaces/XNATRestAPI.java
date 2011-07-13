@@ -89,46 +89,41 @@ public class XNATRestAPI {
 	public void downloadREST(String query, String location) throws IOException{
 		int tries=0;
 		while((tries++)<retry_count){
-			try{
-				System.out.println("Downloading: " + query);
-				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
-				con.setRequestMethod("GET");
-				//set time out litmit 5000
-				con.setConnectTimeout(5000);
-				BASE64Encoder enc = new BASE64Encoder();
-				String userpass = user+":"+pass;
-				String encoded = enc.encode(userpass.getBytes());
-				con.addRequestProperty("Authorization", "Basic "+encoded);
-				
-				InputStream stuff = con.getInputStream();
-				
-				byte[] buffer = new byte[1024];
-				
-				FileOutputStream fos = new FileOutputStream(location);
-				
-				int count;
-				while( (count = stuff.read(buffer,0,1024)) >= 0){
-					fos.write(buffer,0,count);
-				}
-				
-				fos.close();
-				stuff.close();
-				
-				/* 
-				//Use a stand along downloader 
-				 
-				File output=new File(location);
-				Downloader downloader=new Downloader(new URL(query),output);
-				downloader.run();
-				while (!downloader.isCompleted()) {;}
-				
-							 
-				 */
-				return;
-			}catch(ConnectException ce){
-				ce.printStackTrace();
-				//retry
+			System.out.println("Downloading: " + query);
+			/*HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+			con.setRequestMethod("GET");
+			//set time out litmit 5000
+			con.setConnectTimeout(5000);
+			BASE64Encoder enc = new BASE64Encoder();
+			String userpass = user+":"+pass;
+			String encoded = enc.encode(userpass.getBytes());
+			con.addRequestProperty("Authorization", "Basic "+encoded);
+			
+			InputStream stuff = con.getInputStream();
+			
+			byte[] buffer = new byte[1024];
+			
+			FileOutputStream fos = new FileOutputStream(location);
+			
+			int count;
+			while( (count = stuff.read(buffer,0,1024)) >= 0){
+				fos.write(buffer,0,count);
 			}
+			
+			fos.close();
+			stuff.close();
+			*/
+			 
+			//Use a stand alone downloader 
+			 
+			File output=new File(location);
+			Downloader downloader=new Downloader(new URL(query),output);
+			downloader.run();
+			while (!downloader.isCompleted()) {;}
+			
+						 
+			 
+			return;
 		}
 		throw new IOException("Unable to connect to host: " + query);
 	}
