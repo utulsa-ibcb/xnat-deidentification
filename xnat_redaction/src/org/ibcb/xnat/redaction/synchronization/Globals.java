@@ -1,5 +1,6 @@
 package org.ibcb.xnat.redaction.synchronization;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
@@ -32,6 +33,26 @@ public class Globals {
 		application_log.setStream("e", Configuration.instance().getProperty("error_log"), false);
 		application_log.setStream("r", Configuration.instance().getProperty("redaction_log"), false);
 		application_log.setStream("w", Configuration.instance().getProperty("redaction_warn_log"), false);
+	}
+	
+	public static void createDirectory(String directory_path){
+		String[] path = directory_path.split("/");
+		
+		String fpath = "";
+		
+		for(String folder : path){
+			if(folder.length() == 0)
+				fpath+="/";
+			else{
+				fpath+=folder+"/";
+				
+				
+				File f = new File(fpath);
+				if(!f.exists()){
+					f.mkdir();
+				}
+			}
+		}
 	}
 	
 	public static String nodeToString(Node node) {

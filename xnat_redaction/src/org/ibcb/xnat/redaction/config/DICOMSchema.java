@@ -15,9 +15,25 @@ public class DICOMSchema {
 	Map<String, Pair<Integer, Integer>> dicom_location_map;
 	Map<Pair<Integer, Integer>, String> dicom_name_map;
 	
-	public DICOMSchema(){
+	static DICOMSchema instance;
+	
+	private DICOMSchema() throws CompileException, FileNotFoundException, IOException{
 		dicom_location_map = new HashMap<String, Pair<Integer, Integer>>();
 		dicom_name_map = new HashMap<Pair<Integer, Integer>, String>();
+		
+		loadDicomSchema(Configuration.instance().getProperty("dicom_schema"));
+	}
+	
+	public static DICOMSchema instance(){
+		if(instance==null){
+			try{
+				instance = new DICOMSchema();
+			}catch(Exception e){
+				e.printStackTrace();
+				instance = null;
+			}
+		}
+		return instance;
 	}
 	
 	public Set<String> getMappedFields(){
@@ -66,7 +82,7 @@ public class DICOMSchema {
 		}
 	}
 	
-	public void loadDicomSchema(String file) throws IOException, FileNotFoundException, CompileException{
+	private void loadDicomSchema(String file) throws IOException, FileNotFoundException, CompileException{
 		BufferedReader bfr = new BufferedReader(new FileReader(file));
 		String line = null;
 		int lnum = 0;

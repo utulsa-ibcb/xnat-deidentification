@@ -92,28 +92,4 @@ public class Checkout extends RedactionPipelineService{
 				XNATRestAPI.instance().downloadDICOMFiles(project, subject, experiment, scan);	
 			}
 	}
-	
-	public static void main(String args[]){
-		try{
-			DICOMExtractor dcmExt = DICOMExtractor.instance();
-			dcmExt.initialize();
-			
-			XNATExtractor xnatExt = XNATExtractor.instance();
-			xnatExt.initialize();
-			
-			Checkout checkout = Checkout.instance();
-			checkout.initialize();
-			
-			XNATProject project = new XNATProject();
-			project.id = "NCIGT_PROSTATE";
-			
-			checkout.downloadProjectXML(project);
-			
-			project.print();
-			
-			
-		}catch(PipelineServiceException pse){
-			pse.printStackTrace();
-		}
-	}
 }

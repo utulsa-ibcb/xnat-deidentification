@@ -7,6 +7,8 @@ import org.w3c.dom.Node;
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
 public class XNATResultSet {
+	protected String type; 
+	
 	
 	public class Row{
 		LinkedList<String> values = new LinkedList<String>();
@@ -82,7 +84,37 @@ public class XNATResultSet {
 					set.rows.add(r);
 			}
 		}
-		
 		return set;
+	}
+	
+	
+	public void parseXMLResult(DOMParser parser){
+		XNATResultSet set = this;
+		Node columns = parser.getDocument().getElementsByTagName("columns").item(0);
+		Node rows = parser.getDocument().getElementsByTagName("rows").item(0);
+		
+		for(int s = 0; s < columns.getChildNodes().getLength(); s++){
+			Node col = columns.getChildNodes().item(s);
+			
+			if(col.getLocalName() != null && col.getLocalName().equalsIgnoreCase("column"))
+				set.columns.add(col.getTextContent());
+		}
+		
+		for(int s = 0; s < rows.getChildNodes().getLength(); s++){
+			Node row = rows.getChildNodes().item(s);
+			
+			
+			if(row.getLocalName() != null && row.getLocalName().equalsIgnoreCase("row")){
+				Row r = set.new Row();
+				
+				for(int t = 0; t < row.getChildNodes().getLength(); t++){
+					Node cell = row.getChildNodes().item(t);
+					r.values.add(cell.getTextContent());
+				}
+				
+				if(r.complete())
+					set.rows.add(r);
+			}
+		}
 	}
 }
