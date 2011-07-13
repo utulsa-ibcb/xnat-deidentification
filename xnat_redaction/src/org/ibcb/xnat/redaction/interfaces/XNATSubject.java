@@ -106,7 +106,6 @@ public class XNATSubject extends XNATEntity{
 		return ""+Globals.idnf.format(destIdCounter);
 	}
 	
-	
 	public void print(){
 		System.out.println("    XNATSubject: " + id);
 		

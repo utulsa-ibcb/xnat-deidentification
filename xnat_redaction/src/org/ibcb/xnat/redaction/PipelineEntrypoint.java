@@ -41,58 +41,61 @@ public class PipelineEntrypoint {
 		}
 		
 		try {
-			XNATEntity proj = XNATEntity.getEntity("projects", project_id);
 			
-			System.out.println("Downloading project info: " + proj.getID());
+			// get target project resource tree
 			
-			proj.download();
-				
-			XNATEntity.batchCreate(proj, "subjects");
 			
-			for(XNATEntity subject : proj.getChildren()){
-				System.out.println("Subject: " + subject.getID());
+			XNATEntity tproject = XNATEntity.getEntity("projects", dest_project_id);			
+			XNATEntity.downloadAll(tproject, "files");
+			
+			
+			// get source project resource path
+			
+			String [] path = resource_path.split("/");
+			
+			XNATEntity [] parents = new XNATEntity[path.length/2];
+			
+			parents[0] = XNATEntity.getEntity("projects", path[1]);
+			
+			int mode = 0;
+			int i = 1;
+			XNATEntity project = null;
+			
+			for(int j = 2; j < path.length; j++){
+				if(mode == 0){
+					XNATEntity.batchCreate(parents[i-1], path[j]);
+					
+					mode=1;
+				}else{
+					
+					for(XNATEntity child : parents[i-1].getChildren()){
+						if(child.getID().equals(path[j])){
+							child.download();
+							break;
+						}
+					}
+					
+					i++;
+					mode=0;
+				}
 			}
 			
-			XNATEntity subject = proj.getChildren().iterator().next();
+			XNATEntity root = parents[parents.length-1];
 			
-			System.out.println("Downloading subject: " + subject.getID());
+			XNATEntity.downloadAll(root);
 			
-			subject.download();
+			root.printResourceTree();
 			
-			XNATEntity.batchCreate(subject, "experiments");
+			// create any necessary resources
+			// if the resource in question already exists, delete the target resource
 			
-			for(XNATEntity experiment : subject.getChildren()){
-				System.out.println("Experiment: " + experiment.getID());
-			}
-			
-			XNATEntity experiment = subject.getChildren().iterator().next();
-			
-			System.out.println("Downloading experiment: " + experiment.getID());
-			
-			experiment.download();
-			
-			XNATEntity.batchCreate(experiment, "scans");
-			
-			for(XNATEntity scan : experiment.getChildren()){
-				System.out.println("Scan: " + scan.getID());
-			}
+			// download source project resource path and children
 			
 			
-			XNATEntity scan = experiment.getChildren().iterator().next();
+			// redact
 			
-			System.out.println("Downloading scan: " + scan.getID());
 			
-			scan.download();
-			
-			XNATEntity.batchCreate(scan, "files");
-			
-			for(XNATEntity file : scan.getChildren()){
-				System.out.println("File: " + file.getID());
-				
-				file.download();
-				
-				file.redact();
-			}
+			// upload
 			
 			
 			

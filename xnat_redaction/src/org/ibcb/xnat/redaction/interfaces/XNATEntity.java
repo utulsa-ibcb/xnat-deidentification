@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.rmi.ConnectException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import javax.xml.transform.TransformerException;
@@ -176,5 +177,36 @@ public abstract class XNATEntity {
 	
 	public static LinkedList<String> preservedFields(){
 		return preserve;
+	}
+	
+	private static void downloadAll(XNATEntity xext, HashSet<String> exclude_types) throws IOException, TransformerException, SAXException, ConnectException{
+		
+		for(String entityType : entityClasses.keySet()){
+			if(entityClasses.get(entityType).getParentType().equals(xext.getEntityType()) && !exclude_types.contains(entityType)){
+				XNATEntity.batchCreate(xext, entityType);
+			}
+		}
+		
+		for(XNATEntity child : xext.children.values()){
+			child.download();
+			downloadAll(child);
+		}
+	}
+	public static void downloadAll(XNATEntity xext, String ... exclude) throws IOException, TransformerException, SAXException, ConnectException{
+		HashSet<String> exclude_types = new HashSet<String>();
+		
+		for(String s : exclude){
+			exclude_types.add(s);
+		}
+		
+		downloadAll(xext, exclude_types);
+	}
+		
+	public void printResourceTree(){
+		System.out.println(this.getPath());
+		
+		for(XNATEntity child : this.children.values()){
+			child.printResourceTree();
+		}
 	}
 }
