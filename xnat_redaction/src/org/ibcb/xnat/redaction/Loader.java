@@ -290,8 +290,9 @@ public class Loader {
 				// upload subject information -Matt
 				if(subject.passed){
 					//Create a subject info for passed subject
-					
-					if(combined_demographics.containsKey("PatientBirthdate") && combined_demographics.containsKey("PatientName")){
+
+					if (combined_demographics.containsKey("PatientBirthdate") && combined_demographics.containsKey("PatientName"))
+					{
 						String req_ID=requestId.toPlainString()+";";
 						SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(combined_demographics),project_id,req_ID,combined_demographics.get("PatientName"),combined_demographics.get("PatientBirthdate"));
 						//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());

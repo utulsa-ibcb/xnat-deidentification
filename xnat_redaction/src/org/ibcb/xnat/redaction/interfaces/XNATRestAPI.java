@@ -35,6 +35,7 @@ import org.ibcb.xnat.redaction.DICOMExtractor;
 import org.ibcb.xnat.redaction.XNATExtractor;
 import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.exceptions.PipelineServiceException;
+import org.ibcb.xnat.redaction.helpers.Downloader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -43,6 +44,7 @@ import org.xml.sax.SAXException;
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
 import sun.misc.BASE64Encoder;
+
 
 
 public class XNATRestAPI {
@@ -89,40 +91,78 @@ public class XNATRestAPI {
 	}
 	
 	public void downloadREST(String query, String location) throws IOException{
-		int tries=0;
-		while((tries++)<retry_count){
-			try{
-				System.out.println("Downloading: " + query);
-				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
-				con.setRequestMethod("GET");
-				//set time out litmit 5000
-				con.setConnectTimeout(5000);
-				BASE64Encoder enc = new BASE64Encoder();
-				String userpass = user+":"+pass;
-				String encoded = enc.encode(userpass.getBytes());
-				con.addRequestProperty("Authorization", "Basic "+encoded);
-				
-				InputStream stuff = con.getInputStream();
-				
-				byte[] buffer = new byte[1024];
-				
-				FileOutputStream fos = new FileOutputStream(location);
-				
-				int count;
-				while( (count = stuff.read(buffer,0,1024)) >= 0){
-					fos.write(buffer,0,count);
+		//int tries=0;
+		//while((tries++)<retry_count){
+			System.out.println("Downloading: " + query);
+			/*HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+			con.setRequestMethod("GET");
+			//set time out litmit 5000
+			con.setConnectTimeout(5000);
+			BASE64Encoder enc = new BASE64Encoder();
+			String userpass = user+":"+pass;
+			String encoded = enc.encode(userpass.getBytes());
+			con.addRequestProperty("Authorization", "Basic "+encoded);
+			
+			InputStream stuff = con.getInputStream();
+			
+			byte[] buffer = new byte[1024];
+			
+			FileOutputStream fos = new FileOutputStream(location);
+			
+			int count;
+			while( (count = stuff.read(buffer,0,1024)) >= 0){
+				fos.write(buffer,0,count);
+			}
+			
+			fos.close();
+			stuff.close();
+			*/
+			 
+			//Use a stand alone downloader 
+			BASE64Encoder enc = new BASE64Encoder();
+			String userpass = user+":"+pass;
+			String encoded = enc.encode(userpass.getBytes());
+			//con.addRequestProperty("Authorization", "Basic "+encoded);
+			
+			File output=new File(location);
+			Downloader downloader=new Downloader(new URL(query),output);
+			Downloader.Authorization=encoded;
+			Thread downloaderThread=new Thread(downloader);
+			downloaderThread.start();
+			int oldLength=-1;
+			long start = System.currentTimeMillis();
+ 
+			while (!downloader.isCompleted()) {
+				//long now = System.currentTimeMillis();
+				//System.out.println("downloaded: "+downloader.getDownloadedlength());
+				if ((start<System.currentTimeMillis()-5000) && downloader.getProgressString()=="Downloading")
+				{
+					System.out.println("downloaded: "+downloader.getDownloadedlength());
+					int newLength=downloader.getDownloadedlength();
+					System.out.println("downloaded: "+(newLength-oldLength)+" during 5000");
+					if (newLength-oldLength<1)	
+					{
+						System.out.println("download time out restart");
+						downloaderThread.stop();
+						//output.delete();
+						output=new File(location);
+						downloader=new Downloader(new URL(query),output);
+						Downloader.Authorization=encoded;
+						downloaderThread=new Thread(downloader);
+						downloaderThread.start();
+						oldLength=-1;
+						start = System.currentTimeMillis();
+					}
+					oldLength=newLength;
+					start=System.currentTimeMillis();
 				}
 				
-				fos.close();
-				stuff.close();
-				
-				return;
-			}catch(ConnectException ce){
-				ce.printStackTrace();
-				//retry
-			}
-		}
-		throw new IOException("Unable to connect to host: " + query);
+				}
+						 
+			 
+			return;
+		//}
+		//throw new IOException("Unable to connect to host: " + query);
 	}
 	
 	public String DOMtoXML(DOMParser xml) throws TransformerException {
@@ -810,7 +850,7 @@ public class XNATRestAPI {
 		api.retrieveExperimentIds(project, subject);
 		
 		api.retrieveExperiment(project, subject, subject.experiment_ids.get(0));
-		
+
 		XNATExperiment experiment = project.experiments.get(subject.experiment_ids.get(0));
 		
 		api.retrieveScans(project, subject, experiment);
