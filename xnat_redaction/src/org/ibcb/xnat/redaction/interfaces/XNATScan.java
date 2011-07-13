@@ -106,8 +106,13 @@ public class XNATScan extends XNATEntity{
 		return parent.getDestinationPath() + "/scans/"+ this.destination_id; 
 	}
 	
+	boolean downloaded;
+	public boolean isDownloaded(){
+		return downloaded;
+	}
 	public void download() throws IOException, SAXException, ConnectException, TransformerException {
 		XNATRestAPI.instance().retrieveResource(this);
+		downloaded=true;
 	}
 	
 	public HashMap<String, String> getRedactedData(){

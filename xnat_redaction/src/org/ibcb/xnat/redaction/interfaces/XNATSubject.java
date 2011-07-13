@@ -143,9 +143,14 @@ public class XNATSubject extends XNATEntity{
 		return parent.getDestinationPath() + "/subjects/"+ this.destination_id; 
 	}
 	
+	boolean downloaded;
+	public boolean isDownloaded(){
+		return downloaded;
+	}
+	
 	public void download()  throws IOException, SAXException, ConnectException, TransformerException {
 		XNATRestAPI.instance().retrieveResource(this);
-		
+		downloaded=true;
 	}
 	
 	public String entityType() {

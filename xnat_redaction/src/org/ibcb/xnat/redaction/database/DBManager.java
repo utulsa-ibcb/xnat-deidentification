@@ -62,6 +62,56 @@ public class DBManager extends Thread{
 		return con;
 	}
 
+	
+	public String getResourceDestinationID(String type, String src_project, String src_rid, String dest_project){
+		
+		String query = "SELECT dest_rid FROM resourcemap WHERE type=\""+type+"\" AND src_project=\""+src_project+"\" AND src_rid = \""+src_rid+"\" AND dest_project = \""+dest_project+"\";";
+		String rid=null;
+		Connection newcon=this.getConnection();
+		
+		try {
+			stmt = newcon.createStatement();	
+			ResultSet rs = stmt.executeQuery(query);
+			if (rs.next())
+			{
+				rid = rs.getString("dest_rid");
+			}
+			stmt.close();
+			rs.close();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			newcon.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return rid;
+	}
+	
+	public void setResourceDestinationID(String type, String src_project, String src_rid, String dest_project, String dest_rid){
+		String query = "INSERT IGNORE INTO resourcemap (type, src_project, dest_project, src_rid, dest_rid) VALUES (\""+type+"\",\""+src_project+"\",\""+dest_project+"\",\""+src_rid+"\",\""+dest_rid+"\");";
+		String rid=null;
+		Connection newcon=this.getConnection();
+		
+		try {
+			stmt = newcon.createStatement();	
+			stmt.executeUpdate(query);
+			stmt.close();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			newcon.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public LinkedList<String> findSameSubjects(String subjectId)
 	{
 		String[] sameSubjects=null;
@@ -261,7 +311,7 @@ public class DBManager extends Thread{
 				e.printStackTrace();
 			}
 			return null;	
-}
+	}
 	
 	public String getSubjectID(String subjectname, String dateofbirth)
 	{

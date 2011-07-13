@@ -28,6 +28,8 @@ public abstract class XNATEntity {
 	protected String id;
 	protected String destination_id;
 	
+	public abstract boolean isDownloaded();
+	
 	HashMap<String, XNATEntity> children = new HashMap<String, XNATEntity>();
 	
 	public void addChild(XNATEntity e){
@@ -120,7 +122,6 @@ public abstract class XNATEntity {
 		}
 		System.out.println();
 	}
-	
 
 	public static String xmlIDFieldName(String type){
 		if(entityClasses.containsKey(type))
@@ -136,10 +137,11 @@ public abstract class XNATEntity {
 		return null;
 	}
 	
+	
 	public static void batchCreate(XNATEntity parent, String type){
 		if(entityClasses.containsKey(type)){
 			
-			System.out.println("Getting listing for " + type);
+			System.out.println("Getting listing for " + type + " with parent: " + parent.getPath());
 			
 			XNATResultSet listing = new XNATResultSet();
 			listing.type = type;
@@ -179,10 +181,39 @@ public abstract class XNATEntity {
 		return preserve;
 	}
 	
+	public static HashMap<String,String> aggregateRedactedData(XNATEntity root){
+		HashMap<String,String> data = root.getRedactedData();
+		
+		if(data==null){
+			data = new HashMap<String,String>();
+		}
+		
+		for(XNATEntity child : root.getChildren()){
+			HashMap<String,String> cred = aggregateRedactedData(child);
+			
+			for(String k : cred.keySet()){
+				if(!data.containsKey(k))
+					data.put(k, cred.get(k));
+			}
+			
+		}
+		
+		return data;
+	}
+	
+	public static void redactAll(XNATEntity root){
+		root.redact();
+		for(XNATEntity e : root.getChildren()){
+			if(e.isDownloaded())
+				redactAll(e);
+		}
+	}
+	
 	private static void downloadAll(XNATEntity xext, HashSet<String> exclude_types) throws IOException, TransformerException, SAXException, ConnectException{
 		
 		for(String entityType : entityClasses.keySet()){
-			if(entityClasses.get(entityType).getParentType().equals(xext.getEntityType()) && !exclude_types.contains(entityType)){
+			String ptype = entityClasses.get(entityType).getParentType();
+			if(ptype != null && ptype.equals(xext.getEntityType()) && !exclude_types.contains(entityType)){
 				XNATEntity.batchCreate(xext, entityType);
 			}
 		}
