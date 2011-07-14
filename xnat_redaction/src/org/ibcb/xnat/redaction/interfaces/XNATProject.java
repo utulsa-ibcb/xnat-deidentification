@@ -50,7 +50,10 @@ public class XNATProject extends XNATEntity{
 	public String getDestinationPath(){
 		return "/projects/"+ this.destination_id; 
 	}
-	
+	boolean downloaded;
+	public boolean isDownloaded(){
+		return downloaded;
+	}
 	public void download() {
 		XNATRestAPI.instance().retrieveResource(this);
 		
@@ -71,8 +74,10 @@ public class XNATProject extends XNATEntity{
 				}
 			}
 		}
+		downloaded=true;
 		
 		System.out.println(this.toString());
+		
 	}
 	
 	public HashMap<String, String> getRedactedData(){

@@ -352,6 +352,14 @@ public class XNATRestAPI {
 				
 				InputStream stuff = con.getInputStream();
 				
+//				byte[] buffer = new byte[50];
+//				int read = 0;
+//				while((read = stuff.read(buffer)) > 0){
+//					for(int i = 0; i < read; i++){
+//						System.out.print((char)buffer[i]);
+//					}
+//				}
+				
 				DOMParser parse = new DOMParser();
 				parse.parse(new InputSource(stuff));
 				return parse;

@@ -50,6 +50,10 @@ public class XNATScanFile extends XNATEntity{
 		return parent.getDestinationPath() + "/files/"+ this.id; 
 	}
 	
+	boolean downloaded;
+	public boolean isDownloaded(){
+		return downloaded;
+	}
 	public void download()  throws IOException, SAXException, ConnectException, TransformerException {
 		if(fileHandlers.containsKey(xml_listing.getValue("collection"))){
 			localFile = Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath()+"/"+this.id;
@@ -60,6 +64,7 @@ public class XNATScanFile extends XNATEntity{
 			
 			handler = fileHandlers.get(xml_listing.getValue("collection")).create(localFile, this);
 		}
+		downloaded=true;
 	}
 	
 	public HashMap<String, String> getRedactedData(){
