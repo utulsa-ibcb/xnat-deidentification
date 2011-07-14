@@ -57,7 +57,7 @@ public class XNATRestAPI {
 	// /REST/projects/PROJECT_ID/files
 	static XNATRestAPI instance = null;
 	final static int retry_count = 3;
-	
+	static int timeout=5000;
 	boolean enable_auth=true;
 	
 	String url;
@@ -91,32 +91,7 @@ public class XNATRestAPI {
 	}
 	
 	public void downloadREST(String query, String location) throws IOException{
-		//int tries=0;
-		//while((tries++)<retry_count){
 			System.out.println("Downloading: " + query);
-			/*HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
-			con.setRequestMethod("GET");
-			//set time out litmit 5000
-			con.setConnectTimeout(5000);
-			BASE64Encoder enc = new BASE64Encoder();
-			String userpass = user+":"+pass;
-			String encoded = enc.encode(userpass.getBytes());
-			con.addRequestProperty("Authorization", "Basic "+encoded);
-			
-			InputStream stuff = con.getInputStream();
-			
-			byte[] buffer = new byte[1024];
-			
-			FileOutputStream fos = new FileOutputStream(location);
-			
-			int count;
-			while( (count = stuff.read(buffer,0,1024)) >= 0){
-				fos.write(buffer,0,count);
-			}
-			
-			fos.close();
-			stuff.close();
-			*/
 			 
 			//Use a stand alone downloader 
 			BASE64Encoder enc = new BASE64Encoder();
@@ -130,16 +105,17 @@ public class XNATRestAPI {
 			Thread downloaderThread=new Thread(downloader);
 			downloaderThread.start();
 			int oldLength=-1;
+			int oldpercent=0;
 			long start = System.currentTimeMillis();
- 
 			while (!downloader.isCompleted()) {
-				//long now = System.currentTimeMillis();
-				//System.out.println("downloaded: "+downloader.getDownloadedlength());
-				if ((start<System.currentTimeMillis()-5000) && downloader.getProgressString()=="Downloading")
+				
+				//check every timeout ms to see if the downloader has progress during that.
+				
+				if ((start<System.currentTimeMillis()-XNATRestAPI.timeout) && downloader.getProgressString()=="Downloading")
 				{
-					System.out.println("downloaded: "+downloader.getDownloadedlength());
+					//System.out.println("downloaded: "+downloader.getDownloadedlength());
 					int newLength=downloader.getDownloadedlength();
-					System.out.println("downloaded: "+(newLength-oldLength)+" during 5000");
+					System.out.println("downloaded: "+(newLength-oldLength)+" during "+XNATRestAPI.timeout+" ms");
 					if (newLength-oldLength<1)	
 					{
 						System.out.println("download time out restart");
@@ -157,12 +133,8 @@ public class XNATRestAPI {
 					start=System.currentTimeMillis();
 				}
 				
-				}
-						 
-			 
+			}			 
 			return;
-		//}
-		//throw new IOException("Unable to connect to host: " + query);
 	}
 	
 	public String DOMtoXML(DOMParser xml) throws TransformerException {
