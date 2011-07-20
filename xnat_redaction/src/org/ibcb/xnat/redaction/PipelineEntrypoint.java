@@ -1,10 +1,12 @@
 package org.ibcb.xnat.redaction;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.rmi.ConnectException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimeZone;
@@ -16,6 +18,7 @@ import org.ibcb.xnat.redaction.config.Configuration;
 import org.ibcb.xnat.redaction.config.DICOMSchema;
 import org.ibcb.xnat.redaction.config.XNATSchema;
 import org.ibcb.xnat.redaction.database.DBManager;
+import org.ibcb.xnat.redaction.database.RequestInfo;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.helpers.Message;
 import org.ibcb.xnat.redaction.interfaces.XNATEntity;
@@ -31,7 +34,7 @@ public class PipelineEntrypoint {
 		
 		String co_user_id = args[2];
 		String co_admin_id = args[3];
-		
+		LinkedList<String> req_field_names = new LinkedList<String>();
 		String request_fields="";
 		
 		String resource_path = "projects/"+project_id+"/";
@@ -91,19 +94,39 @@ public class PipelineEntrypoint {
 					complete_field_names.add(f);
 			}
 			
+			for(String item : request_fields.split(",")){
+				if(!item.trim().equals(""))
+					req_field_names.add(XNATSchema.instance().getXnatFieldName("xnat:"+item.trim()));
+			}
 			// load redaction rules
 
+			LinkedList<String> filter_fields = new LinkedList<String>();
 			
+			for(String field : complete_field_names){
+				if(!filter_fields.contains("request_"+field)){
+					filter_fields.add("request_"+field);
+				}
+			}
+			
+			for(String field : Configuration.instance().getProperty("filter_fields").split(",")){
+				if(!filter_fields.contains(field)){
+					filter_fields.add(field);
+				}
+			}
 			// load checkout ruleset and checkout system
 			CheckoutRuleset cr = new CheckoutRuleset();
-			cr.setFields(complete_field_names.toArray(new String[]{}));
+			cr.setFields(filter_fields.toArray(new String[]{}));
 			cr.loadRuleSet(Configuration.instance().getProperty("checkout_rules"));
 			
 			
 			// initialize DB Manager
 			DBManager db=new DBManager(Configuration.instance().getProperty("database_hostname"),Configuration.instance().getProperty("database_name"),Configuration.instance().getProperty("database_user"),Configuration.instance().getProperty("database_pass"));
-			
-			
+			Date dt=new Date();
+			System.out.println("check out field "+request_fields);
+			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",req_field_names);
+			BigDecimal requestId=db.getNextRequestID();
+			r_info.setRequestid(requestId);
+			HashMap<String,HashMap<String,String>> overallCheckoutInfo=db.getUserCheckOutInfo(co_user_id);	
 			// get target project resource tree
 			
 			
@@ -163,6 +186,7 @@ public class PipelineEntrypoint {
 			
 			XNATEntity.redactAll(root);
 			
+			
 			// collect a list of subject objects in this redaction
 			
 			LinkedList<XNATEntity> failedSubjects = new LinkedList<XNATEntity>();
@@ -174,11 +198,68 @@ public class PipelineEntrypoint {
 					HashMap<String,String> data = XNATEntity.aggregateRedactedData(child);
 					
 					// Recover subject identity
+					String uniSubjectid=null;
+					if (db.lookupSubjectid(child.getID())!=null)
+					uniSubjectid=db.lookupSubjectid(child.getID()).toString();
+					HashMap<String,String> subjectCheckoutInfo=null;
+					if (uniSubjectid!=null)
+					subjectCheckoutInfo=overallCheckoutInfo.get(uniSubjectid);
+					
+					// populate map of checkout fields -Liang
+					HashMap<String, String> requesting_user_data = subjectCheckoutInfo;
+					HashMap<String, String> filter_data = new HashMap<String,String>();
+					int checkoutCount=0;
+					for (String field : complete_field_names)
+					{
+							String requestName="request_"+field;
+							filter_data.put(requestName, "0");						
+					}
+					
+					if (subjectCheckoutInfo!=null){
+						for (String key:subjectCheckoutInfo.keySet())
+						{
+							if (subjectCheckoutInfo.get(key).equals(new String("1")))
+							{
+								checkoutCount++;
+								String requestName="request_"+key;
+								filter_data.put(requestName, "1");
+							}					
+						}
+						for (String key:requesting_user_data.keySet())
+						{
+							if (requesting_user_data.get(key).equals(new String("1")))
+							{
+								String requestName="request_"+key;
+								filter_data.put(requestName, "1");
+							}
+							
+						}
+					}
+					for (String fieldName : req_field_names)
+					{
+						String key="request_"+fieldName;
+						if (!filter_data.get(key).equals(new String("1")))
+								{
+									filter_data.remove(key);
+									filter_data.put(key, "1");
+									checkoutCount++;
+								}					
+					}
+					String phi_checked="phi_checked_out";
+					filter_data.put(phi_checked, Integer.toString(checkoutCount));
+					System.out.println("Check out map for subject "+child.getID());
+					for(String key : filter_data.keySet())
+					{
+						System.out.println(key+"  |  "+filter_data.get(key));					
+					}
+
+					
+					
 					
 					boolean pass;
 					// FILTER! and add to failedSubjects
-					// pass = cr.filter(data);
-					pass=true;
+					pass = cr.filter(filter_data);
+					//pass=true;
 					if(!pass){
 						
 					}
@@ -191,7 +272,7 @@ public class PipelineEntrypoint {
 			// if the resource in question already exists, delete the target resource
 			
 			// upload parents of the root
-			for(i = 1; i < parents.length-1; i++){
+			/*for(i = 1; i < parents.length-1; i++){
 				
 				String resource_id = parents[i].getID();
 				String resource_type = parents[i].getEntityType();
@@ -203,7 +284,7 @@ public class PipelineEntrypoint {
 					
 					
 				}
-			}
+			}*/
 			
 			// upload the root and all children
 			
