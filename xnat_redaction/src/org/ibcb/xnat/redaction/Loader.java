@@ -109,7 +109,7 @@ public class Loader {
 			
 			// load checkout ruleset and checkout system
 			CheckoutRuleset cr = new CheckoutRuleset();
-			cr.setFields(Configuration.instance().getProperty("filter_fields").split(","));
+			cr.setFields(complete_field_names.toArray(new String[]{}));
 			cr.loadRuleSet(Configuration.instance().getProperty("checkout_rules"));
 			
 			Checkout.instance().initialize();
