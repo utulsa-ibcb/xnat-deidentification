@@ -65,7 +65,9 @@ public class DBManager extends Thread{
 	
 	public String getResourceDestinationID(String type, String src_project, String src_rid, String dest_project){
 		
-		String query = "SELECT dest_rid FROM resourcemap WHERE type=\""+type+"\" AND src_project=\""+src_project+"\" AND src_rid = \""+src_rid+"\" AND dest_project = \""+dest_project+"\";";
+		String query = "SELECT dest_rid FROM resourcemap WHERE type=\'"+type+"\' AND src_project=\'"+src_project+"\' AND src_rid = \'"+src_rid+"\' AND dest_project = \'"+dest_project+"\';";
+		
+		
 		String rid=null;
 		Connection newcon=this.getConnection();
 		
@@ -92,12 +94,18 @@ public class DBManager extends Thread{
 	}
 	
 	public void setResourceDestinationID(String type, String src_project, String src_rid, String dest_project, String dest_rid){
-		String query = "INSERT IGNORE INTO resourcemap (type, src_project, dest_project, src_rid, dest_rid) VALUES (\""+type+"\",\""+src_project+"\",\""+dest_project+"\",\""+src_rid+"\",\""+dest_rid+"\");";
+		
+		String q1 = "DELETE FROM resourcemap WHERE type='"+type+"' AND src_project='"+src_project+"' AND src_rid='"+src_rid+"' AND dest_project='"+dest_project+"';";
+		
+		String query = "INSERT INTO resourcemap (type, src_project, dest_project, src_rid, dest_rid) VALUES (\'"+type+"\',\'"+src_project+"\',\'"+dest_project+"\',\'"+src_rid+"\',\'"+dest_rid+"\');";
 		String rid=null;
 		Connection newcon=this.getConnection();
 		
 		try {
 			stmt = newcon.createStatement();	
+			stmt.executeUpdate(q1);
+			stmt.close();
+			stmt = newcon.createStatement();
 			stmt.executeUpdate(query);
 			stmt.close();
 		}catch (SQLException e) {

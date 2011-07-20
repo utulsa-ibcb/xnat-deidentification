@@ -207,11 +207,15 @@ public class XNATSubject extends XNATEntity{
 	private void searchAggregateData(HashMap<String, String> aggregate_data, XNATEntity entity){
 		HashMap<String, String> hs = entity.getRedactedData();
 		
-		for(String k : hs.keySet()){
-			if(!aggregate_data.containsKey(k)){
-				aggregate_data.put(k, hs.get(k));
+		if(hs != null)
+		{		
+			for(String k : hs.keySet()){
+				if(!aggregate_data.containsKey(k)){
+					aggregate_data.put(k, hs.get(k));
+				}
 			}
 		}
+			
 		
 		for(XNATEntity e : entity.children.values()){
 			searchAggregateData(aggregate_data, e);

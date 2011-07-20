@@ -76,7 +76,7 @@ public class XNATRestAPI {
 	}
 	
 	public String getURL(){
-		return url;
+		return url+"/REST";
 	}
 	
 	public void printInputStream(InputStream stream) throws IOException{

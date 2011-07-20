@@ -19,10 +19,12 @@ import org.ibcb.xnat.redaction.config.DICOMSchema;
 import org.ibcb.xnat.redaction.config.XNATSchema;
 import org.ibcb.xnat.redaction.database.DBManager;
 import org.ibcb.xnat.redaction.database.RequestInfo;
+import org.ibcb.xnat.redaction.database.SubjectInfo;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.helpers.Message;
 import org.ibcb.xnat.redaction.interfaces.XNATEntity;
 import org.ibcb.xnat.redaction.interfaces.XNATRestAPI;
+import org.ibcb.xnat.redaction.interfaces.XNATSubject;
 import org.ibcb.xnat.redaction.synchronization.Globals;
 import org.xml.sax.SAXException;
 
@@ -34,7 +36,7 @@ public class PipelineEntrypoint {
 			super(msg);
 		}
 	}
-	
+	static int uk_id = 0;
 	public static void main(String args[]){
 		String project_id = args[0];
 		String dest_project_id = args[1];
@@ -202,7 +204,7 @@ public class PipelineEntrypoint {
 				if(child.getEntityType().equals("subjects") && child.isDownloaded()){
 					
 					// get aggregate redacted data
-					HashMap<String,String> data = XNATEntity.aggregateRedactedData(child);
+					HashMap<String,String> data = XNATEntity.aggregateRedactedData(child);					
 					
 					// Recover subject identity
 					String uniSubjectid=null;
@@ -264,15 +266,36 @@ public class PipelineEntrypoint {
 					// FILTER! and add to failedSubjects
 					pass = cr.filter(filter_data);
 					//pass=true;
-					if(!pass){
-						failedSubjects.add(child);
-					}
+					if(pass){
+						//Create a subject info for passed subject
+
+						if (data.containsKey("PatientBirthdate") && data.containsKey("PatientName"))
+						{
+							String req_ID=requestId.toPlainString()+";";
+							SubjectInfo s_info=new SubjectInfo(null,SubjectInfo.transphiData(data),project_id,req_ID,data.get("PatientName"),data.get("PatientBirthdate"));
+							//System.out.println("phi = "+combined_demographics.toString()+" request id = "+requestId.toPlainString());
+							BigDecimal db_subjectid=db.insertSubjectInfo(s_info);		
+							db.insertSubjectidMap(db_subjectid, child.getID());
+							((XNATSubject)child).setNewLabel(db_subjectid.toString());
+							//System.out.println("new id "+db_subjectid);
+							if (db_subjectid!=null)
+							{
+								String newAffectedIDs=r_info.getaffectedsubjectstext()+db_subjectid+";";
+								r_info.setaffectedsubjects(newAffectedIDs);
+							}
+						}
+						else{
+							((XNATSubject)child).setNewLabel("unknown_"+(uk_id++));
+							failedSubjects.add(child);
+						}
 				}
 			}
 			
 			// upload resources not children of failed subjects
 			// create any necessary resources
 			
+			parents[0].setDestinationID(dest_project_id);
+				
 			// upload parents of the root
 			for(i = 1; i < parents.length-2; i++){
 				
@@ -300,7 +323,14 @@ public class PipelineEntrypoint {
 			
 			
 			LinkedList<XNATEntity> toProcess = new LinkedList<XNATEntity>();
-			toProcess.add(root);
+			
+			if(root.getEntityType().equals("projects")){
+				for(XNATEntity e : root.getChildren()){
+					toProcess.add(e);
+				}
+			}
+			else
+				toProcess.add(root);
 			
 			while(toProcess.size() > 0){
 				
@@ -310,11 +340,12 @@ public class PipelineEntrypoint {
 				if(e.getEntityType().equals("subjects") && failedSubjects.contains(e)){
 								
 					Message m = new Message();
-					m.message = "Subject "+parents[i].getID()+" failed checkout conditions, resource cannot be added...";
+					m.message = "Subject "+e.getID()+" failed checkout conditions, resource cannot be added...";
 					m.type = Message.TYPE_WARNING;
 					messages.add(m);
 					continue;
 				}
+				
 				
 				String resource_id = e.getID();
 				String resource_type = e.getEntityType();
@@ -334,18 +365,19 @@ public class PipelineEntrypoint {
 				e.upload();
 				
 				Message m = new Message();
-				m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+parents[i].getDestinationID()+"'";
+				m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+e.getDestinationID()+"'";
 				m.type=Message.TYPE_INFO;
 				messages.add(m);
 				
 				db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, e.getDestinationID());
 				
-				for(XNATEntity child : e.getChildren()){
-					toProcess.add(child);
+				for(XNATEntity childs : e.getChildren()){
+					toProcess.add(childs);
 				}
 			}
 			
-		} catch(FailedRootException e){
+		} 
+			}catch(FailedRootException e){
 			
 			Message m = new Message();
 			m.type = Message.TYPE_INFO;
@@ -371,6 +403,8 @@ public class PipelineEntrypoint {
 		} catch (TransformerException e) {
 			e.printStackTrace();
 		} catch (Exception e){
+			e.printStackTrace();
+			
 			Message m = new Message();
 			m.e = e;
 			m.type = Message.TYPE_ERROR;

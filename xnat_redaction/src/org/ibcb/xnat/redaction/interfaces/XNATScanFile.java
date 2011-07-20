@@ -60,7 +60,7 @@ public class XNATScanFile extends XNATEntity{
 			
 			Globals.createDirectory(Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath());
 			
-			XNATRestAPI.instance().downloadREST(XNATRestAPI.instance().getURL()+xml_listing.getValue("URI"), localFile);
+			XNATRestAPI.instance().downloadREST(XNATRestAPI.instance().url+xml_listing.getValue("URI"), localFile);
 			
 			handler = fileHandlers.get(xml_listing.getValue("collection")).create(localFile, this);
 		}
