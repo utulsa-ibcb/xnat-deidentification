@@ -90,6 +90,8 @@ public class XNATRestAPI {
 		}
 	}
 	
+
+	
 	public void downloadREST(String query, String location) throws IOException{
 			System.out.println("Downloading: " + query);
 			 
@@ -297,6 +299,40 @@ public class XNATRestAPI {
 		String xml_string = DOMtoXML(xml);
 		
 		putREST(query, xml_string);
+	}
+	
+	public void deleteREST(String query) throws IOException{
+		int tries=0;
+		while((tries++)<retry_count){
+			try{
+				System.out.println("DELETEting: " + query);
+				HttpURLConnection con = (HttpURLConnection) new URL(query).openConnection();
+				con.setRequestMethod("DELETE");
+				con.setDoOutput(true);
+				
+				BASE64Encoder enc = new BASE64Encoder();
+				String userpass = user+":"+pass;
+				String encoded = enc.encode(userpass.getBytes());
+				con.addRequestProperty("Authorization", "Basic "+encoded);
+				
+				
+				System.out.println("Delete response: "+con.getResponseCode());
+				
+				System.out.println(con.getResponseMessage());
+					
+//				InputStream stuff = con.getInputStream();
+				
+//				DOMParser parse = new DOMParser();
+//				parse.parse(new InputSource(stuff));
+				
+//				System.out.println(DOMtoXML(parse));
+				
+				break;
+			}catch(ConnectException ce){
+				ce.printStackTrace();
+				if(tries==retry_count) throw ce;
+			}
+		}
 	}
 	
 	public void putREST(String query, String content) throws IOException, SAXException, ConnectException, TransformerException{

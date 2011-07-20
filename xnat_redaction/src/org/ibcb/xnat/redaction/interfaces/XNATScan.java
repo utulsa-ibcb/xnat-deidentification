@@ -124,6 +124,8 @@ public class XNATScan extends XNATEntity{
 		
 	}
 	public void upload() throws IOException, SAXException, ConnectException, TransformerException {
-		XNATRestAPI.instance().postREST(XNATRestAPI.instance().getURL()+this.getDestinationPath(), this.extractXML(this.getParent().getParent().getParent().getDestinationID(),this.getParent().getParent().getDestinationID(), this.getParent().getDestinationID()));
+		String response = XNATRestAPI.instance().postREST(XNATRestAPI.instance().getURL()+this.getParent().getDestinationPath()+"/scans", this.extractXML(this.getParent().getParent().getParent().getDestinationID(),this.getParent().getParent().getDestinationID(), this.getParent().getDestinationID()));
+		
+		this.destination_id = response.substring(response.lastIndexOf('/')+1);
 	}
 }

@@ -339,8 +339,8 @@ public class Loader {
 							
 							response = api.postScan(target, subject, experiment, scan);
 							scan.setDestinationID(response.substring(response.lastIndexOf('/')+1));
-						
-
+							
+							
 							// upload DICOM files -Matt
 							api.uploadDICOMFiles(target, subject, experiment, scan);
 						}
