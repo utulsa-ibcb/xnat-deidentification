@@ -22,11 +22,18 @@ import org.ibcb.xnat.redaction.database.RequestInfo;
 import org.ibcb.xnat.redaction.exceptions.CompileException;
 import org.ibcb.xnat.redaction.helpers.Message;
 import org.ibcb.xnat.redaction.interfaces.XNATEntity;
+import org.ibcb.xnat.redaction.interfaces.XNATRestAPI;
 import org.ibcb.xnat.redaction.synchronization.Globals;
 import org.xml.sax.SAXException;
 
 public class PipelineEntrypoint {
 	static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	public static class FailedRootException extends Exception{
+		public FailedRootException(String msg){
+			super(msg);
+		}
+	}
 	
 	public static void main(String args[]){
 		String project_id = args[0];
@@ -252,27 +259,26 @@ public class PipelineEntrypoint {
 					{
 						System.out.println(key+"  |  "+filter_data.get(key));					
 					}
-
-					
-					
 					
 					boolean pass;
 					// FILTER! and add to failedSubjects
 					pass = cr.filter(filter_data);
 					//pass=true;
 					if(!pass){
-						
+						failedSubjects.add(child);
 					}
 				}
 			}
-		
 			
 			// upload resources not children of failed subjects
 			// create any necessary resources
-			// if the resource in question already exists, delete the target resource
 			
 			// upload parents of the root
-			/*for(i = 1; i < parents.length-1; i++){
+			for(i = 1; i < parents.length-2; i++){
+				
+				if(parents[i].getEntityType().equals("subjects") && failedSubjects.contains(parents[i])){
+					throw new FailedRootException("Subject "+parents[i].getID()+" failed checkout conditions, resource cannot be added...");
+				}
 				
 				String resource_id = parents[i].getID();
 				String resource_type = parents[i].getEntityType();
@@ -280,15 +286,72 @@ public class PipelineEntrypoint {
 				String resource = db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
 				
 				if(resource == null){
-					// need to upload
-					
-					
+					parents[i].upload();
+					db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, parents[i].getDestinationID());
+					Message m = new Message();
+					m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+parents[i].getDestinationID()+"'";
+					m.type=Message.TYPE_INFO;
+					messages.add(m);
 				}
-			}*/
+			}
 			
 			// upload the root and all children
+			// if the resource in question already exists, delete the target resource
 			
 			
+			LinkedList<XNATEntity> toProcess = new LinkedList<XNATEntity>();
+			toProcess.add(root);
+			
+			while(toProcess.size() > 0){
+				
+				
+				XNATEntity e = toProcess.pop();
+				
+				if(e.getEntityType().equals("subjects") && failedSubjects.contains(e)){
+								
+					Message m = new Message();
+					m.message = "Subject "+parents[i].getID()+" failed checkout conditions, resource cannot be added...";
+					m.type = Message.TYPE_WARNING;
+					messages.add(m);
+					continue;
+				}
+				
+				String resource_id = e.getID();
+				String resource_type = e.getEntityType();
+				
+				String resource = db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
+				
+				if(resource != null){
+					String query = e.getParent().getDestinationPath() + "/"+ resource_type +"/" + resource;
+					XNATRestAPI.instance().deleteREST(query);
+					
+					Message m = new Message();
+					m.message = "Deleted resource '"+dest_project_id+"/"+resource+"'";
+					m.type=Message.TYPE_INFO;
+					messages.add(m);
+				}
+				
+				e.upload();
+				
+				Message m = new Message();
+				m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+parents[i].getDestinationID()+"'";
+				m.type=Message.TYPE_INFO;
+				messages.add(m);
+				
+				db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, e.getDestinationID());
+				
+				for(XNATEntity child : e.getChildren()){
+					toProcess.add(child);
+				}
+			}
+			
+		} catch(FailedRootException e){
+			
+			Message m = new Message();
+			m.type = Message.TYPE_INFO;
+			m.message = e.getMessage();
+			
+			messages.add(m);
 		} catch(CompileException ce){
 			ce.printStackTrace();
 			
@@ -296,6 +359,8 @@ public class PipelineEntrypoint {
 			m.e = ce;
 			m.type = Message.TYPE_ERROR;
 			m.message = ce.getMessage();
+			
+			messages.add(m);
 			
 		} catch (ConnectException e) {
 			e.printStackTrace();
@@ -310,6 +375,7 @@ public class PipelineEntrypoint {
 			m.e = e;
 			m.type = Message.TYPE_ERROR;
 			m.message = "Unexpected Exception Type Encountered, Fatal: " + e.getMessage();
+			messages.add(m);
 		}
 		
 		
