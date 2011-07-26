@@ -223,7 +223,8 @@ public class XNATSubject extends XNATEntity{
 	}
 	
 	public void upload()  throws IOException, SAXException, ConnectException, TransformerException {
-		String target_xml = "<xnat:Subject ID=\"\" project=\""+parent.getDestinationID()+"\" group = \""+group+"\" label=\""+newLabel+"\" xmlns:xnat=\"http://nrg.wustl.edu/xnat\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+		// group = \""+group+"\"
+		String target_xml = "<xnat:Subject ID=\"\" project=\""+parent.getDestinationID()+"\"  label=\""+newLabel+"\" xmlns:xnat=\"http://nrg.wustl.edu/xnat\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		target_xml+="\t<xnat:demographics xsi:type=\"xnat:demographicData\">\n";
 		
 		// insert demographic data
@@ -235,14 +236,14 @@ public class XNATSubject extends XNATEntity{
 		for(String keep : XNATEntity.preservedFields()){
 			if(aggregate_data.containsKey(keep)){
 				String tag = XNATSchema.instance().getXnatFieldLocation(keep);
-				target_xml += "\t\t<xnat:"+tag+">"+aggregate_data.get(keep)+"</xnat:"+tag+">\n";
+				target_xml += "\t\t<"+tag+">"+aggregate_data.get(keep)+"</"+tag+">\n";
 			}
 		}
 		
 		target_xml += "\t</xnat:demographics>\n";
 		target_xml += "</xnat:Subject>\n";
 		
-		String response = XNATRestAPI.instance().postREST(XNATRestAPI.instance().getURL()+parent.getPath()+"/subjects", "");
+		String response = XNATRestAPI.instance().postREST(XNATRestAPI.instance().getURL()+parent.getDestinationPath()+"/subjects", "");
 
 		this.destination_id = response.substring(response.lastIndexOf('/')+1);
 		
