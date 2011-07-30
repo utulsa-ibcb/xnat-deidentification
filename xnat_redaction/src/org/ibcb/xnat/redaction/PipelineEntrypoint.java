@@ -131,6 +131,13 @@ public class PipelineEntrypoint {
 			// initialize DB Manager
 			DBManager db=new DBManager(Configuration.instance().getProperty("database_hostname"),Configuration.instance().getProperty("database_name"),Configuration.instance().getProperty("database_user"),Configuration.instance().getProperty("database_pass"));
 			Date dt=new Date();
+			
+			//Check if the project in use.
+			while (db.checkProjectLock(project_id))
+			{
+				//blocking wait
+			}
+			db.lockProject(project_id);
 			System.out.println("check out field "+request_fields);
 			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",req_field_names);
 			BigDecimal requestId=db.getNextRequestID();
@@ -375,6 +382,8 @@ public class PipelineEntrypoint {
 					toProcess.add(childs);
 				}
 			}
+			db.insertRequestInfo(r_info);
+			db.unlockProject(project_id);
 			
 		} 
 			}catch(FailedRootException e){
@@ -431,5 +440,7 @@ public class PipelineEntrypoint {
 				}
 			}
 		}
+
+		
 	}
 }

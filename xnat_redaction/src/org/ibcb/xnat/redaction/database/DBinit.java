@@ -125,6 +125,23 @@ public class DBinit {
 			  }
 			  else
 				  System.out.println("Already have resourcemap table");
+			  
+			  
+			  if (!connection.getMetaData().getTables(null, null, "projectlock", null).next())
+			  {
+				  System.out.println("Dont have projectlock, will create one");
+				  String cmd ="CREATE TABLE projectlock(  inuse boolean,  projectid character varying(80) NOT NULL,  CONSTRAINT projectlockprimarykey PRIMARY KEY (projectid))WITH (  OIDS=FALSE);ALTER TABLE projectlock OWNER TO "+user+";";
+				  Statement stat=connection.createStatement();
+				  try{stat.execute(cmd);}
+				  catch(SQLException e)
+				  {
+					  System.out.println("ERROR");
+					  e.printStackTrace();
+					  
+				  }
+			  }
+			  else
+				  System.out.println("Already have projectlock table");
 		  }
 }
 	  public static void main(String[] argv) throws SQLException {

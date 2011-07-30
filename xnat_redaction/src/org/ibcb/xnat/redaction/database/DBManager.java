@@ -237,6 +237,78 @@ public class DBManager extends Thread{
 		
 	}
 	
+	public void lockProject(String projectID)
+	{
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT inuse FROM projectlock WHERE projectid=\'"+projectID+"\';");
+			if (rs.first())
+			{
+				//if a record existing, turn it into inuse
+				stmt = newcon.createStatement();
+				stmt.execute("UPDATE projectlock SET inuse=\'true\' WHERE projectid=\'"+projectID+"\';");
+				
+			}
+			else
+			{
+				//add a new record
+				stmt = newcon.createStatement();
+				stmt.execute("INSERT INTO projectlock (projectid,inuse) VALUES (\'"+projectID+"\',true);");				
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean checkProjectLock(String projectID)
+	{
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT inuse FROM projectlock WHERE projectid=\'"+projectID+"\';");
+			if (rs.first())
+				return rs.getBoolean("inuse");
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+		
+	}
+	
+	public void unlockProject(String projectID)
+	{
+		Connection newcon = this.getConnection();
+		try {
+			stmt = newcon.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT inuse FROM projectlock WHERE projectid=\'"+projectID+"\';");
+			if (rs.first())
+			{
+				//if a record existing, turn it into inuse
+				stmt = newcon.createStatement();
+				stmt.execute("UPDATE projectlock SET inuse=\'false\' WHERE projectid=\'"+projectID+"\';");
+				
+			}
+			else
+			{
+				//add a new record
+				stmt = newcon.createStatement();
+				stmt.execute("INSERT INTO projectlock (projectid,inuse) VALUES (\'"+projectID+"\',false);");				
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	
+	
+	
 	private  HashMap<String,String> mergeHashMap(HashMap<String,String> origin,  HashMap<String,String> update)
 	{
 		for (String key : update.keySet())

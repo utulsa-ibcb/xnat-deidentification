@@ -134,6 +134,15 @@ public class Loader {
 			DBManager db=new DBManager(Configuration.instance().getProperty("database_hostname"),Configuration.instance().getProperty("database_name"),Configuration.instance().getProperty("database_user"),Configuration.instance().getProperty("database_pass"));
 			//init a new request
 			Date dt=new Date();
+			
+			//Check if the project in use.
+			while (db.checkProjectLock(project_id))
+			{
+				//blocking wait
+			}
+			db.lockProject(project_id);
+					
+			
 			//leave affected subjectids blank for now
 			System.out.println("check out field "+request_fields);
 			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",req_field_names);
@@ -351,6 +360,7 @@ public class Loader {
 				}
 			}
 			db.insertRequestInfo(r_info);
+			db.unlockProject(project_id);
 		}catch(PipelineServiceException pse){
 			pse.printStackTrace();
 			
