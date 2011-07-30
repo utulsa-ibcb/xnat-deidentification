@@ -110,6 +110,7 @@ public class DBManager extends Thread{
 			stmt.close();
 		}catch (SQLException e) {
 			e.printStackTrace();
+			System.err.println("Offending query: " + query);
 		}
 		
 		try {
@@ -206,10 +207,12 @@ public class DBManager extends Thread{
 	public HashMap<String,String> getSubjectCheckOutInfo(String subjectid,String userid)
 	{
 		Connection newcon = this.getConnection();
+		String q = "SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\' AND rinfo.affectedsubjects LIKE \'%;"+subjectid+";%\';";
 		HashMap<String,String> checkoutMap=new HashMap<String,String>();
 		try {
 			stmt = newcon.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT rinfo.checkoutinfo FROM subjectinfo sinfo, requestinfo rinfo WHERE sinfo.subjectid="+subjectid+" AND rinfo.userid=\'"+userid+"\' AND rinfo.affectedsubjects LIKE \'%;"+subjectid+";%\';");
+			ResultSet rs = stmt.executeQuery(q);
+			
 			while (rs.next())
 			{
 				String checkoutinfo=rs.getString("checkoutinfo");
@@ -225,6 +228,7 @@ public class DBManager extends Thread{
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.err.println("Offending query: " + q);
 		}
 		try {
 			newcon.close();

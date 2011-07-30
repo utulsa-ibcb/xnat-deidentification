@@ -113,7 +113,7 @@ public class DBinit {
 			  if (!connection.getMetaData().getTables(null, null, "resourcemap", null).next())
 			  {
 				  System.out.println("Dont have resourcemap, will create one");
-				  String cmd ="CREATE TABLE resourcemap( type character varying(20), src_project character varying(20), dest_project  character varying(20), src_rid  character varying(20), dest_rid  character varying(20), CONSTRAINT rmapprimary PRIMARY KEY (type,src_project,dest_project,src_rid))WITH (  OIDS=FALSE);ALTER TABLE resourcemap OWNER TO "+user+";CREATE INDEX fastfind ON resourcemap (type, src_project, src_rid);";
+				  String cmd ="CREATE TABLE resourcemap( type character varying(20), src_project character varying(30), dest_project  character varying(30), src_rid  character varying(30), dest_rid  character varying(30), CONSTRAINT rmapprimary PRIMARY KEY (type,src_project,dest_project,src_rid))WITH (  OIDS=FALSE);ALTER TABLE resourcemap OWNER TO "+user+";CREATE INDEX fastfind ON resourcemap (type, src_project, src_rid);";
 				  Statement stat=connection.createStatement();
 				  try{stat.execute(cmd);}
 				  catch(SQLException e)

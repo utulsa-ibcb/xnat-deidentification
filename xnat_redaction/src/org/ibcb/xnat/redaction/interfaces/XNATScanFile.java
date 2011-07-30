@@ -56,6 +56,7 @@ public class XNATScanFile extends XNATEntity{
 	}
 	public void download()  throws IOException, SAXException, ConnectException, TransformerException {
 		if(fileHandlers.containsKey(xml_listing.getValue("collection"))){
+			
 			localFile = Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath()+"/"+this.id;
 			
 			Globals.createDirectory(Configuration.instance().getProperty("temp_dicom_storage")+parent.getPath());
@@ -63,8 +64,9 @@ public class XNATScanFile extends XNATEntity{
 			XNATRestAPI.instance().downloadREST(XNATRestAPI.instance().url+xml_listing.getValue("URI"), localFile);
 			
 			handler = fileHandlers.get(xml_listing.getValue("collection")).create(localFile, this);
+		
+			downloaded=true;
 		}
-		downloaded=true;
 	}
 	
 	public HashMap<String, String> getRedactedData(){
@@ -80,6 +82,7 @@ public class XNATScanFile extends XNATEntity{
 	}
 	public void upload()  throws IOException, SAXException, ConnectException, TransformerException {
 		if(handler!=null){
+			this.destination_id = this.id;
 			XNATRestAPI.instance().postFile(XNATRestAPI.instance().getURL()+this.getDestinationPath(), handler.getRedactedFileLocation());
 		}
 	}

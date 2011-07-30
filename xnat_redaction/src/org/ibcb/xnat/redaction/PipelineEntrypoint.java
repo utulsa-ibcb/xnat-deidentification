@@ -43,7 +43,7 @@ public class PipelineEntrypoint {
 		
 		String co_user_id = args[2];
 		String co_admin_id = args[3];
-		LinkedList<String> req_field_names = new LinkedList<String>();
+		
 		String request_fields="";
 		
 		String resource_path = "projects/"+project_id+"/";
@@ -57,6 +57,8 @@ public class PipelineEntrypoint {
 		
 		String [] fields = request_fields.split(",");
 		XNATEntity.addPreservedFields(fields);
+		
+		
 		
 		long current_time_stamp = Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis();
 		String human_date = df.format(Calendar.getInstance().getTime());
@@ -103,10 +105,6 @@ public class PipelineEntrypoint {
 					complete_field_names.add(f);
 			}
 			
-			for(String item : request_fields.split(",")){
-				if(!item.trim().equals(""))
-					req_field_names.add(XNATSchema.instance().getXnatFieldName("xnat:"+item.trim()));
-			}
 			// load redaction rules
 
 			LinkedList<String> filter_fields = new LinkedList<String>();
@@ -139,7 +137,7 @@ public class PipelineEntrypoint {
 			}
 			db.lockProject(project_id);
 			System.out.println("check out field "+request_fields);
-			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",req_field_names);
+			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",XNATEntity.preservedFields());
 			BigDecimal requestId=db.getNextRequestID();
 			r_info.setRequestid(requestId);
 			HashMap<String,HashMap<String,String>> overallCheckoutInfo=db.getUserCheckOutInfo(co_user_id);	
@@ -204,7 +202,7 @@ public class PipelineEntrypoint {
 			
 			
 			// collect a list of subject objects in this redaction
-			
+			System.out.println("Collecting subjects...");
 			LinkedList<XNATEntity> failedSubjects = new LinkedList<XNATEntity>();
 			
 			for(XNATEntity child : parents[0].getChildren()){
@@ -251,9 +249,10 @@ public class PipelineEntrypoint {
 							
 						}
 					}
-					for (String fieldName : req_field_names)
+					for (String fieldName : XNATEntity.preservedFields())
 					{
 						String key="request_"+fieldName;
+						//System.out.println(key + " " + filter_data.get(key));
 						if (!filter_data.get(key).equals(new String("1")))
 								{
 									filter_data.remove(key);
@@ -295,6 +294,7 @@ public class PipelineEntrypoint {
 							((XNATSubject)child).setNewLabel("unknown_"+(uk_id++));
 							failedSubjects.add(child);
 						}
+					}
 				}
 			}
 			
@@ -341,52 +341,63 @@ public class PipelineEntrypoint {
 			
 			while(toProcess.size() > 0){
 				
-				
 				XNATEntity e = toProcess.pop();
 				
-				if(e.getEntityType().equals("subjects") && failedSubjects.contains(e)){
-								
-					Message m = new Message();
-					m.message = "Subject "+e.getID()+" failed checkout conditions, resource cannot be added...";
-					m.type = Message.TYPE_WARNING;
-					messages.add(m);
-					continue;
-				}
+				System.out.println("Processing: " + e.getID());
 				
-				
-				String resource_id = e.getID();
-				String resource_type = e.getEntityType();
-				
-				String resource = db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
-				
-				if(resource != null){
-					String query = e.getParent().getDestinationPath() + "/"+ resource_type +"/" + resource;
-					XNATRestAPI.instance().deleteREST(query);
+				if(e.isDownloaded()){
+					
+					if(e.getEntityType().equals("subjects") && failedSubjects.contains(e)){
+									
+						Message m = new Message();
+						m.message = "Subject "+e.getID()+" failed checkout conditions, resource cannot be added...";
+						System.out.println(m.message);
+						m.type = Message.TYPE_WARNING;
+						messages.add(m);
+						continue;
+					}
+					
+					
+					String resource_id = e.getID();
+					String resource_type = e.getEntityType();
+					
+/*					String resource = db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
+					
+					if(resource != null){
+						String query = e.getParent().getDestinationPath() + "/"+ resource_type +"/" + resource;
+						XNATRestAPI.instance().deleteREST(XNATRestAPI.instance().getURL()+query);
+						
+						Message m = new Message();
+						m.message = "Deleted resource '"+dest_project_id+"/"+resource+"'";
+						System.out.println(m.message);
+						m.type=Message.TYPE_INFO;
+						messages.add(m);
+					}*/
+					
+					e.upload();
 					
 					Message m = new Message();
-					m.message = "Deleted resource '"+dest_project_id+"/"+resource+"'";
+					m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+e.getDestinationID()+"'";
+					
 					m.type=Message.TYPE_INFO;
 					messages.add(m);
-				}
-				
-				e.upload();
-				
-				Message m = new Message();
-				m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+e.getDestinationID()+"'";
-				m.type=Message.TYPE_INFO;
-				messages.add(m);
-				
-				db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, e.getDestinationID());
-				
-				for(XNATEntity childs : e.getChildren()){
-					toProcess.add(childs);
+					
+					//db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, e.getDestinationID());
+					
+					for(XNATEntity childs : e.getChildren()){
+						toProcess.add(childs);
+					}
 				}
 			}
+<<<<<<< HEAD
 			db.insertRequestInfo(r_info);
 			db.unlockProject(project_id);
 			
 		} 
 			}catch(FailedRootException e){
+=======
+		}catch(FailedRootException e){
+>>>>>>> 7e735d7e0b6bd9f60057f712f2010815fd66d41a
 			
 			Message m = new Message();
 			m.type = Message.TYPE_INFO;

@@ -38,6 +38,9 @@ public class XNATScan extends XNATEntity{
 				if(child.getNodeName().equalsIgnoreCase("xnat:image_session_ID")){
 					scan_xml+="<xnat:image_session_ID>"+dest_experiment_id+"</xnat:image_session_ID>\n";
 				}
+				else if(child.getNodeName().equalsIgnoreCase("xnat:frames")){
+					
+				}
 				else if(child.getNodeName().equalsIgnoreCase("xnat:file")){
 					
 				}
@@ -49,6 +52,8 @@ public class XNATScan extends XNATEntity{
 		}
 		
 		scan_xml+="</xnat:MRScan>\n";
+		
+		System.out.println("scan_xml");
 		return scan_xml;
 	}
 	

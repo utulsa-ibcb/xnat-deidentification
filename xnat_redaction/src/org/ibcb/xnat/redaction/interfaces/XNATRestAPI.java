@@ -356,6 +356,13 @@ public class XNATRestAPI {
 
 				System.out.println("Put response: "+con.getResponseCode());
 				
+				if(con.getResponseCode() != 200){
+					System.err.println("Offending Content: ");
+					System.err.println(content);
+					
+					throw new IOException("Malformed content!");
+				}
+				
 				System.out.println(con.getResponseMessage());
 					
 //				InputStream stuff = con.getInputStream();
@@ -630,6 +637,9 @@ public class XNATRestAPI {
 		BufferedInputStream bis = null;
 		BufferedOutputStream bos = null;
 		try {
+			System.out.println("Posting file \""+filename+"\" to: " + url);
+			
+			
 			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 			con.setRequestMethod("PUT");
 			con.setDoOutput(true);
@@ -837,147 +847,13 @@ public class XNATRestAPI {
 	
 	// /REST/projects/PROJECT_ID/subject/SUBJECT_ID/files	
 	
-	public static void main(String args[])throws PipelineServiceException, TransformerException{
+	public static void main(String args[])throws PipelineServiceException, TransformerException, IOException{
 		
 		XNATRestAPI api = XNATRestAPI.instance();
 
-		XNATProject project = new XNATProject();
-		project.id="NCIGT_PROSTATE";
+		String filename = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S01670/experiments/CENTRAL_E04836/scans/3/redacted/I.001.dcm";
+		String destination = "/projects/Redaction_Test/subjects/CENTRAL_S02528/experiments/CENTRAL_E05182/scans/1/files";
+		api.postFile(api.getURL()+destination, filename);
 		
-		XNATProject destination = new XNATProject();
-		destination.id="Redaction_Test";
-		
-		api.retreiveProject(project); 
-		
-		api.retrieveSubjectIds(project);
-		api.retrieveSubject(project, project.subject_ids.get(0));		
-		
-		XNATSubject subject = project.subjects.get(project.subject_ids.get(0));
-		
-		api.retrieveExperimentIds(project);
-		api.retrieveExperimentIds(project, subject);
-		
-		api.retrieveExperiment(project, subject, subject.experiment_ids.get(0));
-
-		XNATExperiment experiment = project.experiments.get(subject.experiment_ids.get(0));
-		
-		api.retrieveScans(project, subject, experiment);
-		XNATScan scan = subject.scans.get(subject.scan_ids.get(experiment.id).get(0));
-		
-		api.downloadDICOMFiles(project, subject, experiment, scan);
-		
-		
-		
-//		System.out.println(api.DOMtoXML(experiment.xml));
-		
-//		System.out.println(experiment.extractXML(destination.id, subject.destination_id));
-		
-//		System.out.println(scan.extractXML(destination.id, subject.destination_id, experiment.destination_id));
-		
-		String response = api.postSubject(destination);
-		subject.destination_id = response.substring(response.lastIndexOf('/')+1);
-		
-		api.putSubject(destination, subject);
-		
-		response = api.postExperiment(destination, subject, experiment);
-		experiment.destination_id = response.substring(response.lastIndexOf('/')+1);
-		
-		response = api.postScan(destination, subject, experiment, scan);
-		scan.destination_id = response.substring(response.lastIndexOf('/')+1);
-	
-		api.uploadDICOMFiles(destination, subject, experiment, scan);
-		
-		/*
-		
-		api.retrieveSubjectIds(project);
-		api.retrieveExperimentIds(project);
-		
-		api.retrieveSubject(project, project.subject_ids.get(0));
-		
-		XNATSubject sub = project.subjects.get(project.subject_ids.get(0));
-		
-		RedactionRuleset rules = new RedactionRuleset();
-		try{
-			rules.parseRuleset(Configuration.instance().getProperty("redaction_rules"));
-		}catch(Exception e){
-			e.printStackTrace();
-			System.exit(1);
-		}
-		
-		XNATExtractor redact = XNATExtractor.instance();
-		redact.initialize();
-		sub.demographics = redact.extractNameValuePairs(sub.xml, true, rules);
-		
-		System.out.println("Subject demographics: ");
-		
-		for(String key : sub.demographics.keySet()){
-			System.out.println(key + ": " + sub.demographics.get(key));
-		}
-		
-		HashMap<String,String> n_demo = redact.extractNameValuePairs(sub.xml, false, null);
-		System.out.println("Redacted subject demographics: ");
-		for(String key : n_demo.keySet()){
-			System.out.println(key + ": " + n_demo.get(key));
-		}
-		
-		
-		api.retrieveExperimentIds(project, sub);
-		
-		api.retrieveExperiment(project, sub, sub.experiment_ids.get(0));
-		
-		XNATExperiment experiment = project.experiments.get(sub.experiment_ids.get(0));
-		
-		api.retrieveScans(project, sub, experiment);
-		
-		XNATScan scan = sub.scans.get(sub.scan_ids.get(experiment.id).get(0));
-		
-		if(api.downloadDICOMFiles(project, sub, experiment, scan)){
-			System.out.println("Download Successful");
-			
-			for(String file : scan.localFiles){
-				System.out.println("File Extracted: " + file);
-			}
-			
-			System.out.println("Files in: " + scan.tmp_folder);
-		}
-		else{
-			System.out.println("Download Unsuccessful");
-		}
-		
-		DICOMExtractor de = DICOMExtractor.instance();
-		de.initialize();
-		
-		LinkedList<String> req_fields = new LinkedList<String>();
-		req_fields.add("PatientName");
-		
-		for(String file : scan.localFiles){
-			String input = scan.tmp_folder+"/"+file;
-			
-			DicomObject obj = de.loadDicom(input);
-			
-			HashMap<String,String> hs = de.extractNameValuePairs(obj, rules, req_fields);
-			System.out.println("+-------+");
-			System.out.println("| Pre:  |");
-			System.out.println("+-------+");
-			for(String k : hs.keySet()){
-				System.out.printf("%-20.20s: %s\n", k, hs.get(k));
-			}
-			File dir = new File(scan.tmp_folder+"/redacted");
-			if(!dir.exists()){
-				dir.mkdirs();
-			}
-			String nfilename = scan.tmp_folder+"/redacted/"+file;
-			de.writeDicom(nfilename, obj);
-			
-			DicomObject obj2_test = de.loadDicom(nfilename);
-			
-			hs = de.extractNameValuePairs(obj2_test, rules, req_fields);
-			System.out.println("+-------+");
-			System.out.println("| Post: |");
-			System.out.println("+-------+");
-			for(String k : hs.keySet()){
-				System.out.printf("%-20.20s: %s\n", k, hs.get(k));
-			}
-		}*/
 	}
 }
