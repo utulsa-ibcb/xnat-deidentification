@@ -389,15 +389,13 @@ public class PipelineEntrypoint {
 					}
 				}
 			}
-<<<<<<< HEAD
+
 			db.insertRequestInfo(r_info);
 			db.unlockProject(project_id);
 			
-		} 
+		
 			}catch(FailedRootException e){
-=======
-		}catch(FailedRootException e){
->>>>>>> 7e735d7e0b6bd9f60057f712f2010815fd66d41a
+
 			
 			Message m = new Message();
 			m.type = Message.TYPE_INFO;
