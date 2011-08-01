@@ -133,7 +133,7 @@ public class PipelineEntrypoint {
 			//Check if the project in use.
 			while (db.checkProjectLock(project_id))
 			{
-				//blocking wait
+				System.out.println("Project in use");//blocking wait
 			}
 			db.lockProject(project_id);
 			System.out.println("check out field "+request_fields);
