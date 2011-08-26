@@ -47,7 +47,7 @@ public class XNATScanFile extends XNATEntity{
 	}
 	
 	public String getDestinationPath(){
-		return parent.getDestinationPath() + "/files/"+ this.id; 
+		return parent.getDestinationPath() + "/resources/"+handler.collection()+"/files/"+ this.id; 
 	}
 	
 	boolean downloaded;
@@ -83,7 +83,7 @@ public class XNATScanFile extends XNATEntity{
 	public void upload()  throws IOException, SAXException, ConnectException, TransformerException {
 		if(handler!=null){
 			this.destination_id = this.id;
-			XNATRestAPI.instance().postFile(XNATRestAPI.instance().getURL()+this.getDestinationPath(), handler.getRedactedFileLocation());
+			//XNATRestAPI.instance().putFile(XNATRestAPI.instance().getURL()+this.getDestinationPath() + "?inbody=true", handler.getRedactedFileLocation());
 		}
 	}
 	

@@ -131,11 +131,13 @@ public class PipelineEntrypoint {
 			Date dt=new Date();
 			
 			//Check if the project in use.
-			while (db.checkProjectLock(project_id))
+			while (db.checkProjectLock(dest_project_id))
 			{
-				System.out.println("Project in use");//blocking wait
+				System.out.println("Project in use");// blocking wait
+				Thread.currentThread().sleep(5000);
 			}
 			db.lockProject(project_id);
+			
 			System.out.println("check out field "+request_fields);
 			RequestInfo r_info=new RequestInfo(co_user_id,dt.toString(),co_admin_id,"",XNATEntity.preservedFields());
 			BigDecimal requestId=db.getNextRequestID();
@@ -313,11 +315,11 @@ public class PipelineEntrypoint {
 				String resource_id = parents[i].getID();
 				String resource_type = parents[i].getEntityType();
 				
-				String resource = db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
+				String resource = null;//db.getResourceDestinationID(resource_type, project_id, resource_id, dest_project_id);
 				
 				if(resource == null){
 					parents[i].upload();
-					db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, parents[i].getDestinationID());
+					//db.setResourceDestinationID(resource_type, project_id, resource_id, dest_project_id, parents[i].getDestinationID());
 					Message m = new Message();
 					m.message = "Uploaded new resource '"+resource_type+"' from '"+project_id+"/"+resource_id+"' to '"+dest_project_id+"/"+parents[i].getDestinationID()+"'";
 					m.type=Message.TYPE_INFO;
@@ -389,7 +391,7 @@ public class PipelineEntrypoint {
 					}
 				}
 			}
-
+			
 			db.insertRequestInfo(r_info);
 			db.unlockProject(project_id);
 			

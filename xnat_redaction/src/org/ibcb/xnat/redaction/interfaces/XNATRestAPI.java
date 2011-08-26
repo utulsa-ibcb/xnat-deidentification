@@ -9,13 +9,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.rmi.ConnectException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -76,7 +79,7 @@ public class XNATRestAPI {
 	}
 	
 	public String getURL(){
-		return url+"/REST";
+		return url+"/data/archive";
 	}
 	
 	public void printInputStream(InputStream stream) throws IOException{
@@ -632,12 +635,72 @@ public class XNATRestAPI {
             buffInputStream.close();
     }
     
-    public void postFile(String url, String filename)throws MalformedURLException, IOException{
+    public void putFileMultipartForm(String url, String filename) throws MalformedURLException, IOException{
+    	String param = "value";
+    	String charset = "UTF-8";
+    	File binaryFile = new File(filename);
+    	String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
+    	String CRLF = "\r\n"; // Line separator required by multipart/form-data.
+
+    	URLConnection connection = new URL(url).openConnection();
+    	connection.setDoOutput(true);
+    	connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+    	PrintWriter writer=null;
+    	
+    	((HttpURLConnection)connection).setRequestMethod("PUT");
+		
+		BASE64Encoder enc = new BASE64Encoder();
+		String userpass = user+":"+pass;
+		String encoded = enc.encode(userpass.getBytes());
+		connection.addRequestProperty("Authorization", "Basic "+encoded);
+    	
+    	try {
+    	    OutputStream output = connection.getOutputStream();
+    	    writer = new PrintWriter(new OutputStreamWriter(output, charset), true); // true = autoFlush, important!
+
+    	    // Send binary file.
+    	    writer.append("--" + boundary).append(CRLF);
+    	    writer.append("Content-Disposition: form-data; name=\"binaryFile\"; filename=\"" + binaryFile.getName() + "\"").append(CRLF);
+    	    writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(binaryFile.getName())).append(CRLF);
+    	    
+    	    writer.append("Content-Transfer-Encoding: binary").append(CRLF);
+    	    writer.append(CRLF).flush();
+    	    InputStream input = null;
+    	    try {
+    	        input = new FileInputStream(binaryFile);
+    	        byte[] buffer = new byte[1024];
+    	        for (int length = 0; (length = input.read(buffer)) > 0;) {
+    	            output.write(buffer, 0, length);
+    	        }
+    	        output.flush(); // Important! Output cannot be closed. Close of writer will close output as well.
+    	    } catch(Exception e){
+    	    	e.printStackTrace();
+    	    }finally {
+    	        if (input != null) try { input.close(); } catch (IOException logOrIgnore) {logOrIgnore.printStackTrace();}
+    	    }
+    	    writer.append(CRLF).flush(); // CRLF is important! It indicates end of binary boundary.
+
+    	    // End of multipart/form-data.
+    	    writer.append("--" + boundary + "--").append(CRLF);
+    	    
+    	    
+    	    
+    	} catch(Exception e){
+	    	e.printStackTrace();
+	    } finally {
+    	    if (writer != null) writer.close();
+    	}
+	    
+	    System.out.println("Server Response: " + ((HttpURLConnection)connection).getResponseCode() + " -- " + ((HttpURLConnection)connection).getResponseMessage());
+		
+    }
+    
+    public void putFile(String url, String filename)throws MalformedURLException, IOException{
 
 		BufferedInputStream bis = null;
 		BufferedOutputStream bos = null;
 		try {
-			System.out.println("Posting file \""+filename+"\" to: " + url);
+			System.out.println("Putting file \""+filename+"\" to: " + url);
 			
 			
 			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -648,7 +711,7 @@ public class XNATRestAPI {
 			String userpass = user+":"+pass;
 			String encoded = enc.encode(userpass.getBytes());
 			con.addRequestProperty("Authorization", "Basic "+encoded);
-
+			
 			bos = new BufferedOutputStream(con.getOutputStream());
 			bis = new BufferedInputStream(new FileInputStream(filename));
 
@@ -659,6 +722,14 @@ public class XNATRestAPI {
 			}
 			
 			System.out.println("Server Response: " + con.getResponseCode() + " -- " + con.getResponseMessage());
+			
+			InputStream stuff = con.getInputStream();
+			
+//			DOMParser parse = new DOMParser();
+//			parse.parse(new InputSource(stuff));
+			
+			System.out.println(convertStreamToString(stuff));
+			
 		} catch(Exception e){
 			e.printStackTrace();
 		}finally {
@@ -688,7 +759,7 @@ public class XNATRestAPI {
     		System.out.println("Uploading Scan file: " + filename);
     		try{
     			System.out.println("POSTing: " + localFile + " to: " + destination);
-    			postFile(destination, filename);
+    			putFile(destination, filename);
     			
     		}catch(MalformedURLException me){
     			me.printStackTrace();
@@ -851,9 +922,12 @@ public class XNATRestAPI {
 		
 		XNATRestAPI api = XNATRestAPI.instance();
 
-		String filename = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S01670/experiments/CENTRAL_E04836/scans/3/redacted/I.001.dcm";
-		String destination = "/projects/Redaction_Test/subjects/CENTRAL_S02528/experiments/CENTRAL_E05182/scans/1/files";
-		api.postFile(api.getURL()+destination, filename);
+		String filename = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S01668/experiments/CENTRAL_E04834/scans/3/redacted/I.002.dcm";
+		String destination = "/projects/Redaction_Test/subjects/CENTRAL_S01757/experiments/CENTRAL_E04960/scans/3/resources/DICOM/files/I.002.dcm";
+		api.putFileMultipartForm(api.getURL()+destination, filename);
+		filename = "./data/dicom_storage/projects/Redaction_Sour/subjects/CENTRAL_S01668/experiments/CENTRAL_E04834/scans/3/redacted/I.003.dcm";
+		destination = "/projects/Redaction_Test/subjects/CENTRAL_S01757/experiments/CENTRAL_E04960/scans/3/resources/DICOM/files/I.003.dcm";
+		api.putFileMultipartForm(api.getURL()+destination, filename);
 		
 	}
 }

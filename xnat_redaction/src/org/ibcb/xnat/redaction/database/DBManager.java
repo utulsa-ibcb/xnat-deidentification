@@ -289,7 +289,7 @@ public class DBManager extends Thread{
 		try {
 			stmt = newcon.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT inuse FROM projectlock WHERE projectid=\'"+projectID+"\';");
-			if (rs.first())
+			if (rs.next())
 			{
 				//if a record existing, turn it into inuse
 				stmt = newcon.createStatement();
