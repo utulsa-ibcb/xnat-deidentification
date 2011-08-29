@@ -59,6 +59,9 @@ public class XNATExperiment extends XNATEntity{
 	 		
 	 		if(name.equalsIgnoreCase("id") || name.equalsIgnoreCase("project"))
 	 			experiment_xml += "";
+	 		else if(name.equalsIgnoreCase("label")){
+	 			experiment_xml += " " + name + "=\"" + ((XNATSubject)this.getParent()).newLabel + "\"";
+	 		}
 	 		else
 	 			experiment_xml += " " + name + "=\""+value+"\"";
 	 	}

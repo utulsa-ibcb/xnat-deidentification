@@ -128,8 +128,35 @@ public class XNATScan extends XNATEntity{
 		
 		
 	}
-	public void upload() throws IOException, SAXException, ConnectException, TransformerException {
+	
+	public String getScanType(){
 		String type = "xnat:mrScanData";
+		
+		XNATExperiment exp = (XNATExperiment)this.getParent();
+		
+		NodeList nodes = exp.xml.getDocument().getElementsByTagName("xnat:scans");
+		
+		if(nodes.getLength() > 0){
+			Node xnatscans = nodes.item(0);
+		     
+			for(int index=0; index < xnatscans.getChildNodes().getLength(); index++){
+				Node xnatscan = xnatscans.getChildNodes().item(index);
+				
+				if(xnatscan.getNodeName().equalsIgnoreCase("xnat:scan")){
+					if(xnatscan.getAttributes().getNamedItem("ID").getNodeValue().equals(this.getID())){
+						type = xnatscan.getAttributes().getNamedItem("xsi:type").getNodeValue();
+						System.out.println("Found scan type: "+type);
+						break;
+					}
+				}
+			}
+		}
+		
+		return type;
+	}
+	
+	public void upload() throws IOException, SAXException, ConnectException, TransformerException {
+		String type = getScanType();
 		this.destination_id = this.id;
 		
 		String putURL = XNATRestAPI.instance().getURL() + this.getDestinationPath();
